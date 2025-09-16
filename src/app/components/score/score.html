@@ -1,0 +1,31 @@
+<div class="score-panel" *ngIf="gameStats && gameState !== 'menu'">
+  <div class="score-display">
+    <div class="score-item score-current">
+      <div class="score-label">Score</div>
+      <div class="score-value">{{ gameStats.score.current | number }}</div>
+      <div class="score-bonus" *ngIf="gameStats.score.lastMove > 0">
+        {{ getScoreMultiplierText() }}
+      </div>
+    </div>
+
+    <div class="score-item score-best">
+      <div class="score-label">Best</div>
+      <div class="score-value">{{ gameStats.score.best | number }}</div>
+    </div>
+
+    <div class="score-item score-balls">
+      <div class="score-label">Balls Removed</div>
+      <div class="score-value">{{ gameStats.score.ballsRemoved | number }}</div>
+    </div>
+
+    <div class="score-item score-moves">
+      <div class="score-label">Moves</div>
+      <div class="score-value">{{ gameStats.score.movesCount | number }}</div>
+    </div>
+
+    <div class="score-item score-time">
+      <div class="score-label">Time</div>
+      <div class="score-value">{{ formatTime(gameStats.timeElapsed) }}</div>
+    </div>
+  </div>
+</div>

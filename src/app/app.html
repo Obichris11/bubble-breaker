@@ -1,0 +1,42 @@
+<div class="app">
+  <header class="app-header">
+    <h1>{{ title }}</h1>
+    <div class="game-controls" *ngIf="gameState$ | async as gameState">
+      <button
+        class="btn btn-primary"
+        (click)="startNewGame()">
+        {{ gameState === 'playing' || gameState === 'paused' ? 'Restart Game' : 'New Game' }}
+      </button>
+      <button
+        class="btn btn-secondary"
+        (click)="pauseGame()"
+        *ngIf="gameState === 'playing'">
+        Pause
+      </button>
+      <button
+        class="btn btn-secondary"
+        (click)="resumeGame()"
+        *ngIf="gameState === 'paused'">
+        Resume
+      </button>
+      <button
+        class="btn btn-secondary"
+        (click)="returnToMenu()"
+        *ngIf="gameState === 'playing' || gameState === 'paused' || gameState === 'game_over'">
+        Menu
+      </button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="game-container">
+      <div class="spacer-area"></div>
+      <div class="game-area">
+        <app-game-board></app-game-board>
+      </div>
+      <div class="score-area">
+        <app-score></app-score>
+      </div>
+    </div>
+  </main>
+</div>

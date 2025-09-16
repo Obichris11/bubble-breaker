@@ -1,0 +1,9 @@
+<div
+  [class]="getBallClasses()"
+  (click)="onBallClick()"
+  [attr.data-color]="ball.color"
+  [attr.data-row]="ball.row"
+  [attr.data-col]="ball.col">
+
+  <span class="ball__pattern" *ngIf="colorblindMode">{{ getBallPattern() }}</span>
+</div>

@@ -1,0 +1,31 @@
+<div class="game-board" *ngIf="gameBoard && (gameState === 'playing' || gameState === 'game_over')">
+  <div class="game-board__grid">
+    <div
+      class="game-board__row"
+      *ngFor="let row of gameBoard.grid; let rowIndex = index; trackBy: trackByRow">
+      <div
+        class="game-board__cell"
+        *ngFor="let ball of row; let colIndex = index; trackBy: trackByCol">
+        <app-ball
+          *ngIf="ball"
+          [ball]="ball"
+          [colorblindMode]="colorblindMode"
+          (ballClick)="onBallClick($event)">
+        </app-ball>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div class="game-over-overlay" *ngIf="gameState === 'game_over'">
+    <div class="game-over-content">
+      <h2 class="game-over-title">Game Over!</h2>
+      <p class="game-over-subtitle">No more moves available</p>
+    </div>
+  </div>
+</div>
+
+<div class="game-board--empty" *ngIf="!gameBoard || (gameState !== 'playing' && gameState !== 'game_over')">
+  <p *ngIf="gameState === 'menu'">Start a new game to begin playing!</p>
+  <p *ngIf="gameState === 'paused'">Game Paused</p>
+</div>
