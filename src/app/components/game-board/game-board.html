@@ -10,11 +10,25 @@
           *ngIf="ball"
           [ball]="ball"
           [colorblindMode]="colorblindMode"
-          (ballClick)="onBallClick($event)">
+          (ballClick)="onBallClick($event)"
+          (ballHover)="onBallHover($event, ball)"
+          (ballLeave)="onBallLeave()">
         </app-ball>
       </div>
     </div>
   </div>
+
+  <!-- Point Preview -->
+  <div
+    class="point-preview"
+    *ngIf="hoverPreview"
+    [style.left.px]="hoverPreview.x"
+    [style.top.px]="hoverPreview.y">
+    +{{ hoverPreview.points }}
+  </div>
+
+  <!-- Particle Effects -->
+  <app-particles></app-particles>
 
   <!-- Game Over Overlay -->
   <div class="game-over-overlay" *ngIf="gameState === 'game_over'">

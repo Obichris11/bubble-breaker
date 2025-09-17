@@ -6,10 +6,11 @@ import { GameService } from './services/game.service';
 import { GameState } from './models/game.model';
 import { GameBoardComponent } from './components/game-board/game-board';
 import { ScoreComponent } from './components/score/score';
+import { SoundControlsComponent } from './components/sound-controls/sound-controls';
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, GameBoardComponent, ScoreComponent],
+  imports: [CommonModule, GameBoardComponent, ScoreComponent, SoundControlsComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })

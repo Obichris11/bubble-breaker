@@ -45,8 +45,4 @@ export class ScoreComponent implements OnInit, OnDestroy {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   }
 
-  getScoreMultiplierText(): string {
-    if (!this.gameStats || this.gameStats.score.lastMove === 0) return '';
-    return `+${this.gameStats.score.lastMove}`;
-  }
 }

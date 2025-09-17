@@ -4,6 +4,8 @@ import { GameBoard, GameConfig, GameState, GameStats, GameMode, DEFAULT_GAME_CON
 import { Ball, BallGroup } from '../models/ball.model';
 import { GridService } from './grid.service';
 import { ScoreService } from './score.service';
+import { AnimationService } from './animation.service';
+import { SoundService } from './sound.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,7 +31,9 @@ export class GameService {
 
   constructor(
     private gridService: GridService,
-    private scoreService: ScoreService
+    private scoreService: ScoreService,
+    private animationService: AnimationService,
+    private soundService: SoundService
   ) {}
 
   startNewGame(config?: Partial<GameConfig>): void {
@@ -51,6 +55,8 @@ export class GameService {
     this.gameStateSubject.next(GameState.PLAYING);
 
     this.startTimer();
+    this.soundService.playNewGame();
+    this.animationService.clearAnimations();
   }
 
   pauseGame(): void {
@@ -69,38 +75,18 @@ export class GameService {
 
   endGame(): void {
     this.stopTimer();
+    this.soundService.playGameOver();
+
     const currentStats = this.gameStatsSubject.value;
     const currentBoard = this.gameBoardSubject.value;
 
-    if (currentBoard) {
-      const remainingBalls = this.countRemainingBalls(currentBoard.grid);
-      const bonusScore = this.scoreService.getBonusScore(remainingBalls);
-      const timeBonus = this.scoreService.calculateTimeBonus(currentStats.timeElapsed);
+    // Update best score if current score exceeds it
+    const finalScore = this.scoreService.updateBestScore(currentStats.score);
 
-      let finalScore = currentStats.score;
-
-      if (bonusScore > 0 || timeBonus > 0) {
-        finalScore = {
-          ...currentStats.score,
-          current: currentStats.score.current + bonusScore + timeBonus
-        };
-      }
-
-      // Update best score if current score exceeds it
-      finalScore = this.scoreService.updateBestScore(finalScore);
-
-      this.gameStatsSubject.next({
-        ...currentStats,
-        score: finalScore
-      });
-    } else {
-      // Even if no bonuses, check if current score is a new best
-      const updatedScore = this.scoreService.updateBestScore(currentStats.score);
-      this.gameStatsSubject.next({
-        ...currentStats,
-        score: updatedScore
-      });
-    }
+    this.gameStatsSubject.next({
+      ...currentStats,
+      score: finalScore
+    });
 
     this.gameStateSubject.next(GameState.GAME_OVER);
   }
@@ -112,7 +98,7 @@ export class GameService {
     this.selectedGroupSubject.next(null);
   }
 
-  onBallClick(row: number, col: number): void {
+  async onBallClick(row: number, col: number): Promise<void> {
     const currentState = this.gameStateSubject.value;
     const currentBoard = this.gameBoardSubject.value;
     const currentStats = this.gameStatsSubject.value;
@@ -127,46 +113,46 @@ export class GameService {
     const group = this.gridService.findAdjacentGroup(grid, row, col);
 
     if (group && group.size >= 2) {
-      // Mark balls as exploding for animation
-      group.balls.forEach(ball => {
-        ball.isExploding = true;
-        ball.isSelected = false;
-      });
+      // Play ball selection and explosion sounds
+      this.soundService.playBallClick();
+      this.soundService.playBallPop();
 
-      // Update UI to show explosion animation
+      // Remove the balls after explosion animation
+      this.gridService.removeBalls(grid, group.balls);
+
+      // Apply gravity
+      this.gridService.applyGravity(grid);
+
+      // Remove empty columns
+      this.gridService.removeEmptyColumns(grid);
+
+      // Update score
+      const updatedScore = this.scoreService.updateScore(currentStats.score, group.size);
+
+      // Play bonus sound for large groups
+      if (group.size >= 5) {
+        this.soundService.playScoreBonus();
+      }
+
+      const updatedStats: GameStats = {
+        ...currentStats,
+        score: updatedScore
+      };
+
+      this.gameStatsSubject.next(updatedStats);
+      this.selectedGroupSubject.next(null);
       this.gameBoardSubject.next({ ...currentBoard });
 
-      // Wait for explosion animation to play before removing balls
-      setTimeout(() => {
-        // Remove the balls after explosion animation
-        this.gridService.removeBalls(grid, group.balls);
+      // Check for game over
+      if (!this.gridService.hasValidMoves(currentBoard.grid)) {
+        this.endGame();
+        return;
+      }
 
-        // Apply gravity and remove empty columns
-        this.gridService.applyGravity(grid);
-        this.gridService.removeEmptyColumns(grid);
-
-        // Update score
-        const updatedScore = this.scoreService.updateScore(currentStats.score, group.size);
-        const updatedStats: GameStats = {
-          ...currentStats,
-          score: updatedScore
-        };
-
-        this.gameStatsSubject.next(updatedStats);
-        this.selectedGroupSubject.next(null);
-        this.gameBoardSubject.next({ ...currentBoard });
-
-        // Check for game over
-        if (!this.gridService.hasValidMoves(currentBoard.grid)) {
-          this.endGame();
-          return;
-        }
-
-        // Handle continuous mode
-        if (this.gameConfig.mode === GameMode.CONTINUOUS) {
-          this.handleContinuousMode(currentBoard);
-        }
-      }, 400); // 400ms delay for explosion animation
+      // Handle continuous mode
+      if (this.gameConfig.mode === GameMode.CONTINUOUS) {
+        this.handleContinuousMode(currentBoard);
+      }
     } else {
       this.selectedGroupSubject.next(null);
     }

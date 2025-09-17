@@ -1,0 +1,37 @@
+<div class="sound-controls">
+  <h3 class="sound-controls__title">Audio Settings</h3>
+
+  <div class="sound-controls__section">
+    <div class="sound-controls__item">
+      <label class="sound-controls__toggle">
+        <input
+          type="checkbox"
+          [checked]="soundConfig.enabled"
+          (change)="toggleSoundEnabled()">
+        <span class="toggle-switch"></span>
+        Sound Effects
+      </label>
+      <button
+        class="test-button"
+        [disabled]="!soundConfig.enabled"
+        (click)="testSound()">
+        Test
+      </button>
+    </div>
+
+    <div class="sound-controls__item sound-controls__item--volume" *ngIf="soundConfig.enabled">
+      <div class="volume-control">
+        <label class="sound-controls__label">
+          Volume: {{ (soundConfig.volume * 100) | number:'1.0-0' }}%
+        </label>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          class="volume-slider"
+          [value]="soundConfig.volume * 100"
+          (input)="onVolumeChange($any($event.target).value)">
+      </div>
+    </div>
+  </div>
+</div>

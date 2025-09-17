@@ -14,6 +14,7 @@ export interface Ball {
   isSelected: boolean;
   isMarkedForRemoval: boolean;
   isExploding?: boolean;
+  isHovered?: boolean;
 }
 
 export interface Position {

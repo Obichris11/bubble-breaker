@@ -3,9 +3,6 @@
     <div class="score-item score-current">
       <div class="score-label">Score</div>
       <div class="score-value">{{ gameStats.score.current | number }}</div>
-      <div class="score-bonus" *ngIf="gameStats.score.lastMove > 0">
-        {{ getScoreMultiplierText() }}
-      </div>
     </div>
 
     <div class="score-item score-best">
