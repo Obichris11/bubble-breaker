@@ -1,32 +1,37 @@
 .app {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at 30% 20%, #4a90e2 0%, #2171b5 50%, #1a5590 100%);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #c0c0c0;
+  font-family: 'MS Sans Serif', sans-serif;
+  color: #000000;
 }
 
 .app-header {
-  padding: 16px;
+  padding: 8px;
   text-align: center;
-  background:
-    linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 50%, #b8b8b8 100%);
-  border-bottom: 2px solid #888888;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  background: #c0c0c0;
+  border-bottom: none;
+  box-shadow:
+    inset -1px -1px 0px #808080,
+    inset 1px 1px 0px #ffffff,
+    inset -2px -2px 0px #404040,
+    inset 2px 2px 0px #dfdfdf;
 
   h1 {
-    margin: 0 0 16px 0;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #333333;
-    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+    margin: 8px 0 12px 0;
+    font-size: 16px;
+    font-weight: bold;
+    color: #000000;
+    text-shadow: none;
     letter-spacing: 0px;
+    font-family: 'MS Sans Serif', sans-serif;
   }
 
   .game-controls {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 4px;
   }
 }
 
@@ -67,43 +72,62 @@
 }
 
 .btn {
-  padding: 10px 20px;
+  padding: 4px 12px;
   border: none;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
+  border-radius: 0;
+  font-size: 11px;
+  font-weight: normal;
   cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  transition: all 0.1s ease;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: 'MS Sans Serif', sans-serif;
+  background: #c0c0c0;
+  color: #000000;
+  box-shadow:
+    inset -1px -1px 0px #808080,
+    inset 1px 1px 0px #ffffff,
+    inset -2px -2px 0px #404040,
+    inset 2px 2px 0px #dfdfdf;
 
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    transform: none !important;
+    color: #808080;
   }
 
   &:hover:not(:disabled) {
-    transform: translateY(-2px);
+    transform: none;
+    box-shadow:
+      inset -1px -1px 0px #808080,
+      inset 1px 1px 0px #ffffff,
+      inset -2px -2px 0px #404040,
+      inset 2px 2px 0px #dfdfdf;
+  }
+
+  &:active:not(:disabled) {
+    box-shadow:
+      inset 1px 1px 0px #808080,
+      inset -1px -1px 0px #ffffff,
+      inset 2px 2px 0px #404040,
+      inset -2px -2px 0px #dfdfdf;
   }
 
   &-primary {
-    background: linear-gradient(135deg, #74b9ff, #0984e3);
-    color: white;
-    box-shadow: 0 4px 12px rgba(116, 185, 255, 0.3);
+    background: #c0c0c0;
+    color: #000000;
 
     &:hover:not(:disabled) {
-      box-shadow: 0 6px 16px rgba(116, 185, 255, 0.4);
+      background: #c0c0c0;
     }
   }
 
   &-secondary {
-    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-    color: white;
-    box-shadow: 0 4px 12px rgba(162, 155, 254, 0.3);
+    background: #c0c0c0;
+    color: #000000;
 
     &:hover:not(:disabled) {
-      box-shadow: 0 6px 16px rgba(162, 155, 254, 0.4);
+      background: #c0c0c0;
     }
   }
 }
