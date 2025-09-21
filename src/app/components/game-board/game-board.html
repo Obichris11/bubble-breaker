@@ -16,6 +16,17 @@
         </app-ball>
       </div>
     </div>
+
+    <!-- Group Selection Outline -->
+    <svg class="group-outline-overlay" *ngIf="groupOutlinePath" viewBox="0 0 546 356">
+      <path
+        [attr.d]="groupOutlinePath"
+        class="group-outline"
+        fill="none"
+        stroke="black"
+        stroke-width="2">
+      </path>
+    </svg>
   </div>
 
   <!-- Point Preview -->
