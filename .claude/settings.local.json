@@ -6,7 +6,10 @@
       "Bash(xz:*)",
       "Bash(find:*)",
       "Bash(npm start)",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Bash(ng add:*)",
+      "Bash(npm install:*)",
+      "Bash(ng build:*)"
     ],
     "deny": [],
     "ask": []
