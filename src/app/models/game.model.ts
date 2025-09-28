@@ -43,8 +43,8 @@ export interface GameStats {
 }
 
 export const DEFAULT_GAME_CONFIG: GameConfig = {
-  rows: 12,
-  cols: 8,
+  rows: 11,
+  cols: 12,
   colors: [BallColor.RED, BallColor.BLUE, BallColor.GREEN, BallColor.YELLOW, BallColor.PURPLE],
   mode: GameMode.STANDARD,
   enableColorblindMode: false

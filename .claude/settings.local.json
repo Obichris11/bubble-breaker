@@ -4,7 +4,9 @@
       "Bash(npm run build:*)",
       "Bash(tar:*)",
       "Bash(xz:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm start)",
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": []

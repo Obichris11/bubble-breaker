@@ -10,9 +10,9 @@ export class ScoreService {
   calculateScore(groupSize: number): number {
     if (groupSize < 2) return 0;
 
-    // Exponential scoring: (groupSize - 1)^2 * 10
-    // 2 balls = 10 points, 3 balls = 40 points, 4 balls = 90 points, etc.
-    return Math.pow(groupSize - 1, 2) * 10;
+    // Original scoring: groupSize * (groupSize - 1)
+    // 2 balls = 2 points, 3 balls = 6 points, 4 balls = 12 points, etc.
+    return groupSize * (groupSize - 1);
   }
 
   updateScore(currentScore: GameScore, groupSize: number): GameScore {
