@@ -9,7 +9,11 @@
       "Bash(lsof:*)",
       "Bash(ng add:*)",
       "Bash(npm install:*)",
-      "Bash(ng build:*)"
+      "Bash(ng build:*)",
+      "Bash(git tag:*)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
