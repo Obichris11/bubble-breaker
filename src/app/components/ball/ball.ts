@@ -12,19 +12,14 @@ export class BallComponent {
   @Input() ball!: BallModel;
   @Input() colorblindMode = false;
   @Output() ballClick = new EventEmitter<BallModel>();
-  @Output() ballHover = new EventEmitter<MouseEvent>();
-  @Output() ballLeave = new EventEmitter<void>();
+  @Output() ballDoubleClick = new EventEmitter<BallModel>();
 
   onBallClick(): void {
     this.ballClick.emit(this.ball);
   }
 
-  onBallHover(event: MouseEvent): void {
-    this.ballHover.emit(event);
-  }
-
-  onBallLeave(): void {
-    this.ballLeave.emit();
+  onBallDoubleClick(): void {
+    this.ballDoubleClick.emit(this.ball);
   }
 
   getBallClasses(): string {

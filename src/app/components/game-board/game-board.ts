@@ -44,9 +44,9 @@ export class GameBoardComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(state => {
         this.gameState = state;
-        // Clear hover state when game is not in playing state
+        // Clear selection when game is not in playing state
         if (state !== GameState.PLAYING) {
-          this.clearHoverState();
+          this.clearSelection();
         }
       });
 
@@ -66,10 +66,6 @@ export class GameBoardComponent implements OnInit, OnDestroy {
   }
 
   onBallClick(ball: BallModel): void {
-    this.gameService.onBallClick(ball.row, ball.col);
-  }
-
-  onBallHover(event: MouseEvent, ball: BallModel): void {
     if (this.gameState !== GameState.PLAYING || !this.gameBoard) {
       return;
     }
@@ -77,91 +73,78 @@ export class GameBoardComponent implements OnInit, OnDestroy {
     const group = this.gridService.findAdjacentGroup(this.gameBoard.grid, ball.row, ball.col);
 
     if (group && group.size >= 2) {
-      // Clear previous hover state
-      this.clearHoverState();
-
-      this.hoveredGroup = group;
-
-      // Highlight all balls in the group
-      group.balls.forEach(ball => {
-        const ballInGrid = this.gameBoard!.grid[ball.row][ball.col];
-        if (ballInGrid) {
-          ballInGrid.isHovered = true;
-        }
-      });
-
-      const points = this.scoreService.calculateScore(group.size);
-
-      // Find the center position above the group
-      const minRow = Math.min(...group.balls.map(b => b.row));
-      const maxRow = Math.max(...group.balls.map(b => b.row));
-      const minCol = Math.min(...group.balls.map(b => b.col));
-      const maxCol = Math.max(...group.balls.map(b => b.col));
-
-      // Calculate center position of the group
-      const centerRow = minRow;
-      const centerCol = Math.floor((minCol + maxCol) / 2);
-
-      // Find the center-top ball of the group
-      const centerTopElements = document.querySelectorAll(`[data-ball-id="${centerRow}-${centerCol}"]`);
-      if (centerTopElements.length > 0) {
-        const rect = centerTopElements[0].getBoundingClientRect();
-        this.hoverPreview = {
-          points,
-          x: rect.left + (rect.width / 2),
-          y: rect.top - 30
-        };
+      // If this group is already selected, execute the move
+      if (this.selectedGroup && this.isSameGroup(this.selectedGroup, group)) {
+        this.gameService.onBallClick(ball.row, ball.col);
+        this.clearSelection();
       } else {
-        // Fallback: try to find any ball in the top row of the selection
-        const topRowBalls = group.balls.filter(b => b.row === minRow);
-        if (topRowBalls.length > 0) {
-          const middleBall = topRowBalls[Math.floor(topRowBalls.length / 2)];
-          const fallbackElements = document.querySelectorAll(`[data-ball-id="${middleBall.row}-${middleBall.col}"]`);
-          if (fallbackElements.length > 0) {
-            const rect = fallbackElements[0].getBoundingClientRect();
-            this.hoverPreview = {
-              points,
-              x: rect.left + (rect.width / 2),
-              y: rect.top - 30
-            };
-          }
-        } else {
-          // Final fallback to mouse position
-          const rect = (event.target as HTMLElement).getBoundingClientRect();
-          this.hoverPreview = {
-            points,
-            x: rect.left + (rect.width / 2),
-            y: rect.top - 30
-          };
-        }
+        // Select this new group
+        this.selectGroup(group);
       }
     } else {
-      this.clearHoverState();
+      // Clear selection if clicking on invalid bubble or empty space
+      this.clearSelection();
     }
   }
 
-  onBallLeave(): void {
-    this.clearHoverState();
+  onBallDoubleClick(ball: BallModel): void {
+    // Double-click does nothing now - we use single clicks for the two-step process
   }
 
-  private clearHoverState(): void {
+  private clearSelection(): void {
     this.hoverPreview = null;
     this.hoveredGroup = null;
 
-    // Clear hover state from all balls
+    // Clear selection state from all balls
     if (this.gameBoard) {
       this.gameBoard.grid.forEach(row => {
         row.forEach(ball => {
           if (ball) {
             ball.isHovered = false;
+            ball.isSelected = false;
           }
         });
       });
     }
   }
 
+  private selectGroup(group: BallGroup): void {
+    this.clearSelection();
+    this.selectedGroup = group;
 
+    // Mark all balls in the group as selected
+    group.balls.forEach(ball => {
+      const ballInGrid = this.gameBoard!.grid[ball.row][ball.col];
+      if (ballInGrid) {
+        ballInGrid.isSelected = true;
+      }
+    });
 
+    // Show point preview
+    const points = this.scoreService.calculateScore(group.size);
+    const minRow = Math.min(...group.balls.map(b => b.row));
+    const minCol = Math.min(...group.balls.map(b => b.col));
+    const maxCol = Math.max(...group.balls.map(b => b.col));
+    const centerCol = Math.floor((minCol + maxCol) / 2);
+
+    // Find a ball element to position the preview
+    const centerTopElements = document.querySelectorAll(`[data-ball-id="${minRow}-${centerCol}"]`);
+    if (centerTopElements.length > 0) {
+      const rect = centerTopElements[0].getBoundingClientRect();
+      this.hoverPreview = {
+        points,
+        x: rect.left + (rect.width / 2),
+        y: rect.top - 30
+      };
+    }
+  }
+
+  private isSameGroup(group1: BallGroup, group2: BallGroup): boolean {
+    if (group1.size !== group2.size) return false;
+
+    const group1Keys = new Set(group1.balls.map(b => `${b.row},${b.col}`));
+    return group2.balls.every(b => group1Keys.has(`${b.row},${b.col}`));
+  }
 
   trackByRow(index: number): number {
     return index;

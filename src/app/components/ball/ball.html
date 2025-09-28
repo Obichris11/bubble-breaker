@@ -1,8 +1,7 @@
 <div
   [class]="getBallClasses()"
   (click)="onBallClick()"
-  (mouseenter)="onBallHover($event)"
-  (mouseleave)="onBallLeave()"
+  (dblclick)="onBallDoubleClick()"
   [attr.data-color]="ball.color"
   [attr.data-row]="ball.row"
   [attr.data-col]="ball.col"
