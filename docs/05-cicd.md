@@ -23,7 +23,7 @@ Inputs: [04-quality.md](04-quality.md) (gates), [06-deployment.md](06-deployment
 ### Prerequisites before going public
 
 1. Remove tracked `.claude/settings.local.json`; add `.claude/` to `.gitignore`.
-2. Accept that the commit author email in existing history becomes public, **or** set GitHub "keep my email private" + use the `…@users.noreply.github.com` address for new commits (history is not rewritten).
+2. **Decided:** existing history (author email) stays as is. Enable GitHub "Keep my email addresses private" and set `git config user.email` to the `…@users.noreply.github.com` address for all new commits. No history rewrite.
 3. History scanned 2026-09-27: no secrets, tokens, keys or IPs found.
 
 ## Versioning
