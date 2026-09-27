@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DEDDD8;font-family:"Noto Sans",Verdana,sans-serif;-webkit-font-smoothing:antialiased}a{color:#0A246A}a:hover{color:#3A6EA5}</style>
+</helmet>
+<section style="padding:48px;display:flex;flex-direction:column;gap:56px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:820px">
+    <div style="font:700 22px 'Noto Sans';color:#1A1A1A">Bubble Breaker: screens (layout 1b)</div>
+    <div style="font:400 13px/1.5 'Noto Sans';color:#3A3A3A;text-wrap:pretty">Every frame is live. Tap a group to select it and tap it again to burst it. Click a board and use the arrow keys, Enter and Esc to try the keyboard. The Menu opens the other screens. See also the <a href="Component Sheet.dc.html">Component Sheet</a>, the <a href="Handoff.dc.html">Handoff</a> and <a href="Game Screen Variations.dc.html">Turn 1</a>.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="font:700 15px 'Noto Sans';color:#1A1A1A">A · Game states, 360×640</div>
+    <div style="display:flex;flex-wrap:wrap;gap:32px">
+      <div id="A1" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">A1</div><div style="font:400 12px 'Noto Sans'">Idle, new game</div></div><dc-import name="Game Screen" w="360" h="640" state="idle" seed="11" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="A2" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">A2</div><div style="font:400 12px 'Noto Sans'">Group highlighted + points bubble</div></div><dc-import name="Game Screen" w="360" h="640" state="highlight" seed="11" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="A3" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">A3</div><div style="font:400 12px 'Noto Sans'">Bursting (pop, 160 ms)</div></div><dc-import name="Game Screen" w="360" h="640" state="burst" seed="11" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="A4" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">A4</div><div style="font:400 12px 'Noto Sans'">Falling (mid-frame)</div></div><dc-import name="Game Screen" w="360" h="640" state="fall" seed="11" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="A5" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">A5</div><div style="font:400 12px 'Noto Sans'">Columns sliding right (mid-frame)</div></div><dc-import name="Game Screen" w="360" h="640" state="slide" seed="11" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="A6" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">A6</div><div style="font:400 12px 'Noto Sans'">Keyboard focus + selection</div></div><dc-import name="Game Screen" w="360" h="640" state="focus" seed="11" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="A7" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">A7</div><div style="font:400 12px 'Noto Sans'">Paused (app returned from background)</div></div><dc-import name="Game Screen" w="360" h="640" state="paused" seed="11" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="font:700 15px 'Noto Sans';color:#1A1A1A">B · Menu and screens, 360×640</div>
+    <div style="display:flex;flex-wrap:wrap;gap:32px">
+      <div id="B1" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">B1</div><div style="font:400 12px 'Noto Sans'">Menu open (timer paused)</div></div><dc-import name="Game Screen" w="360" h="640" state="idle" seed="4" menu="true" menuIdx="1" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="B2" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">B2</div><div style="font:400 12px 'Noto Sans'">Scoring (game over)</div></div><dc-import name="Game Screen" w="360" h="640" view="scoring" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="B3" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">B3</div><div style="font:400 12px 'Noto Sans'">Scoring, new high score</div></div><dc-import name="Game Screen" w="360" h="640" view="scoring" newHigh="true" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="B4" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">B4</div><div style="font:400 12px 'Noto Sans'">Statistics</div></div><dc-import name="Game Screen" w="360" h="640" view="stats" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="B5" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">B5</div><div style="font:400 12px 'Noto Sans'">Reset confirmation</div></div><dc-import name="Game Screen" w="360" h="640" view="stats" dialog="reset" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="B6" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">B6</div><div style="font:400 12px 'Noto Sans'">Options</div></div><dc-import name="Game Screen" w="360" h="640" view="options" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="B7" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">B7</div><div style="font:400 12px 'Noto Sans'">How to Play</div></div><dc-import name="Game Screen" w="360" h="640" view="howto" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="B8" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">B8</div><div style="font:400 12px 'Noto Sans'">About</div></div><dc-import name="Game Screen" w="360" h="640" view="about" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="font:700 15px 'Noto Sans';color:#1A1A1A">C · PWA notices and the Greyscale set</div>
+    <div style="font:400 12px/1.5 'Noto Sans';color:#3A3A3A;max-width:760px;text-wrap:pretty">Notices appear at the top of the board area. The board is anchored to the bottom, so there is always free space above it on a portrait phone and notices never cover balls. Install is offered once, after the first finished game, and never on the first visit.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:32px">
+      <div id="C1" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">C1</div><div style="font:400 12px 'Noto Sans'">New version available</div></div><dc-import name="Game Screen" w="360" h="640" state="highlight" seed="21" toast="update" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="C2" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">C2</div><div style="font:400 12px 'Noto Sans'">Offline ready (auto-hides after 4 s)</div></div><dc-import name="Game Screen" w="360" h="640" state="idle" seed="21" toast="offline" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="C3" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">C3</div><div style="font:400 12px 'Noto Sans'">Install hint</div></div><dc-import name="Game Screen" w="360" h="640" state="idle" seed="8" toast="install" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="C4" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">C4</div><div style="font:400 12px 'Noto Sans'">Greyscale Breakers, highlighted</div></div><dc-import name="Game Screen" w="360" h="640" state="highlight" seed="11" set="grey" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+      <div id="C5" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">C5</div><div style="font:400 12px 'Noto Sans'">Colorful + optional shape hints</div></div><dc-import name="Game Screen" w="360" h="640" state="highlight" seed="11" hints="true" style="width:360px;height:640px" hint-size="360px,640px"></dc-import></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="font:700 15px 'Noto Sans';color:#1A1A1A">D · Other sizes</div>
+    <div style="font:400 12px/1.5 'Noto Sans';color:#3A3A3A;max-width:760px;text-wrap:pretty">The cell size is computed from both viewport dimensions and the chrome stays at fixed pixel sizes. Phones are width-limited and the spare height sits above the board. The tablet fills almost the whole screen. On desktop the game is a centered app window sized to the board's 11:12 aspect, with the cell capped at 48px. A stretched full-window layout would leave the board floating in empty width and would lose the chrome that gives the game its character. A fake phone bezel would suggest touch-only input.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start">
+      <div id="D1" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">D1</div><div style="font:400 12px 'Noto Sans'">390×844, cell 34px</div></div><dc-import name="Game Screen" w="390" h="844" state="highlight" seed="11" style="width:390px;height:844px" hint-size="390px,844px"></dc-import></div>
+      <div id="D2" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">D2</div><div style="font:400 12px 'Noto Sans'">390×844, menu open</div></div><dc-import name="Game Screen" w="390" h="844" state="idle" seed="4" menu="true" style="width:390px;height:844px" hint-size="390px,844px"></dc-import></div>
+      <div id="D3" style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">D3</div><div style="font:400 12px 'Noto Sans'">Tablet 768×1024, cell 69px</div></div><dc-import name="Game Screen" w="768" h="1024" state="highlight" seed="11" style="width:768px;height:1024px" hint-size="768px,1024px"></dc-import></div>
+    </div>
+    <div id="D4" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:8px;align-items:center"><div style="font:700 11px 'JetBrains Mono';background:#0A246A;color:#fff;padding:2px 6px">D4</div><div style="font:400 12px 'Noto Sans'">Desktop 1440×900, app window 536×692, cell 48px</div></div>
+      <div style="width:1440px;height:900px;background:#2F6468;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;box-shadow:0 0 0 1px #404040">
+        <div style="padding:3px;background:#D4D0C8;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8, 4px 4px 0 rgba(0,0,0,.35)">
+          <dc-import name="Game Screen" w="536" h="692" maxCell="48" state="focus" seed="11" style="width:536px;height:692px" hint-size="536px,692px"></dc-import>
+        </div>
+        <div style="font:400 12px 'Noto Sans';color:#fff">Arrow keys move · Enter selects and bursts · Esc clears · N new game · M menu</div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

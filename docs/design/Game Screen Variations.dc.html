@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DEDDD8;font-family:"Noto Sans",Verdana,sans-serif;-webkit-font-smoothing:antialiased}a{color:#0A246A}a:hover{color:#3A6EA5}</style>
+</helmet>
+<section style="padding:48px;display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px;max-width:760px">
+    <div style="font:700 20px 'Noto Sans';color:#1A1A1A">Turn 1: Game screen, two layouts</div>
+    <div style="font:400 13px/1.5 'Noto Sans';color:#3A3A3A;text-wrap:pretty">Both run at 360×640 with identical ball rendering and are playable: tap a group to highlight it, then tap it again to burst it. Only the score and time placement differs. The board is anchored to the bottom, just above the softkeys. Balls fall downward, so the fixed floor stays in thumb reach while cleared space opens up above.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:48px;align-items:flex-start">
+
+    <div id="1a" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font:700 12px 'JetBrains Mono';background:#0A246A;color:#fff;padding:3px 8px">1a</div>
+        <div style="font:400 13px 'Noto Sans';color:#1A1A1A">Score + time in the title bar</div>
+      </div>
+      <div style="width:360px;height:640px;background:#D4D0C8;display:flex;flex-direction:column;box-shadow:0 0 0 1px #404040, 0 12px 32px rgba(0,0,0,.18);overflow:hidden">
+        <div style="height:26px;flex:none;background:linear-gradient(90deg,#0A246A,#3A6EA5);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 8px;gap:8px">
+          <div style="font:700 13px 'Noto Sans';letter-spacing:.1px">Bubble Breaker</div>
+          <div style="display:flex;gap:12px;font:400 12px 'Noto Sans';font-variant-numeric:tabular-nums">
+            <div>Score <b>{{ a.score }}</b></div>
+            <div>{{ a.time }}</div>
+          </div>
+        </div>
+        <div style="flex:1;background:#fff;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:4px;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff">
+          <div style="position:relative;display:grid;grid-template-columns:repeat(11,32px);grid-auto-rows:32px">
+            <sc-for list="{{ a.cells }}" as="cell" hint-placeholder-count="132">
+              <div onClick="{{ cell.onClick }}" style="display:flex;align-items:center;justify-content:center;background:{{ cell.cellBg }};cursor:pointer">
+                <div style="width:95%;height:95%;border-radius:50%;background:{{ cell.ball }}"></div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ a.hasBubble }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:{{ a.bx }}px;top:{{ a.by }}px;transform:translate(-50%,-100%);background:#FFFFE1;border:1px solid #000;padding:1px 6px;font:700 12px 'Noto Sans';color:#000;pointer-events:none;white-space:nowrap">{{ a.pts }}</div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="height:34px;flex:none;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;background:#D4D0C8;box-shadow:inset 0 1px 0 #fff">
+          <div onClick="{{ a.newGame }}" style="display:flex;align-items:center;justify-content:center;font:400 13px 'Noto Sans';color:#000;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-active="box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">New Game</div>
+          <div style="display:flex;align-items:center;justify-content:center;font:400 13px 'Noto Sans';color:#000;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-active="box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">Menu</div>
+        </div>
+      </div>
+      <div style="font:400 12px/1.5 'Noto Sans';color:#3A3A3A;max-width:360px;text-wrap:pretty">Closest to the original: one chrome bar on top and the most vertical room. Score and time are 12px white on the blue gradient, so contrast is lowest here at the light end (≈4.9:1 on #3A6EA5).</div>
+    </div>
+
+    <div id="1b" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font:700 12px 'JetBrains Mono';background:#0A246A;color:#fff;padding:3px 8px">1b</div>
+        <div style="font:400 13px 'Noto Sans';color:#1A1A1A">Separate status strip above the board</div>
+      </div>
+      <div style="width:360px;height:640px;background:#D4D0C8;display:flex;flex-direction:column;box-shadow:0 0 0 1px #404040, 0 12px 32px rgba(0,0,0,.18);overflow:hidden">
+        <div style="height:26px;flex:none;background:linear-gradient(90deg,#0A246A,#3A6EA5);color:#fff;display:flex;align-items:center;padding:0 8px">
+          <div style="font:700 13px 'Noto Sans';letter-spacing:.1px">Bubble Breaker</div>
+        </div>
+        <div style="height:30px;flex:none;display:flex;align-items:center;gap:4px;padding:0 4px;background:#D4D0C8;box-shadow:inset 0 1px 0 #fff, inset 0 -1px 0 #808080">
+          <div style="flex:1;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans';color:#000;font-variant-numeric:tabular-nums;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8">
+            <div>Score</div><div style="font-weight:700">{{ b.score }}</div>
+          </div>
+          <div style="flex:1;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans';color:#000;font-variant-numeric:tabular-nums;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8">
+            <div>Selected</div><div style="font-weight:700">{{ b.sel }}</div>
+          </div>
+          <div style="width:72px;flex:none;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans';color:#000;font-variant-numeric:tabular-nums;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8">
+            <div>⏱</div><div>{{ b.time }}</div>
+          </div>
+        </div>
+        <div style="flex:1;background:#fff;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:4px;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff">
+          <div style="position:relative;display:grid;grid-template-columns:repeat(11,32px);grid-auto-rows:32px">
+            <sc-for list="{{ b.cells }}" as="cell" hint-placeholder-count="132">
+              <div onClick="{{ cell.onClick }}" style="display:flex;align-items:center;justify-content:center;background:{{ cell.cellBg }};cursor:pointer">
+                <div style="width:95%;height:95%;border-radius:50%;background:{{ cell.ball }}"></div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ b.hasBubble }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;left:{{ b.bx }}px;top:{{ b.by }}px;transform:translate(-50%,-100%);background:#FFFFE1;border:1px solid #000;padding:1px 6px;font:700 12px 'Noto Sans';color:#000;pointer-events:none;white-space:nowrap">{{ b.pts }}</div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="height:34px;flex:none;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;background:#D4D0C8;box-shadow:inset 0 1px 0 #fff">
+          <div onClick="{{ b.newGame }}" style="display:flex;align-items:center;justify-content:center;font:400 13px 'Noto Sans';color:#000;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-active="box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">New Game</div>
+          <div style="display:flex;align-items:center;justify-content:center;font:400 13px 'Noto Sans';color:#000;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-active="box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">Menu</div>
+        </div>
+      </div>
+      <div style="font:400 12px/1.5 'Noto Sans';color:#3A3A3A;max-width:360px;text-wrap:pretty">Black text in sunken white fields gives full contrast and a clearer hierarchy. The strip also has room for a "Selected" readout that mirrors the points bubble for screen readers, at the cost of 30px of height.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font:400 13px 'Noto Sans';color:#1A1A1A">Ball check: reference vs. CSS render at the same 20px cell</div>
+      <div style="display:flex;gap:16px;align-items:flex-start;background:#fff;padding:16px;box-shadow:0 0 0 1px #808080">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <img src="uploads/ref-1790532803447-d7bb.png" style="width:220px;display:block">
+          <div style="font:400 11px 'JetBrains Mono';color:#555">reference (bitmap)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:grid;grid-template-columns:repeat(11,20px);grid-auto-rows:20px">
+            <sc-for list="{{ refCells }}" as="cell" hint-placeholder-count="132">
+              <div style="display:flex;align-items:center;justify-content:center">
+                <div style="width:95%;height:95%;border-radius:50%;background:{{ cell.ball }}"></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font:400 11px 'JetBrains Mono';color:#555">CSS render</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;background:#fff;padding:16px;box-shadow:0 0 0 1px #808080">
+        <sc-for list="{{ bigBalls }}" as="bb" hint-placeholder-count="5">
+          <div style="width:72px;height:72px;border-radius:50%;background:{{ bb.ball }}"></div>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const COLS = 11, ROWS = 12, CELL = 32;
+const PAL = [
+  ['#F0503C', '#C81E0F', '#500000'],
+  ['#5064FF', '#1414D2', '#00005A'],
+  ['#5AD25A', '#14A014', '#003C00'],
+  ['#FFF078', '#D2BE00', '#645A00'],
+  ['#F064F0', '#B414B4', '#4B004B'],
+];
+const SPEC = 'radial-gradient(circle at 30% 28%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.55) 5%, rgba(255,255,255,0) 11%)';
+const BALLS = PAL.map(([h, b, e]) => `${SPEC}, radial-gradient(circle farthest-side at 35% 30%, ${h} 0%, ${b} 40%, ${e} 100%)`);
+const HILITE = '#C9D3EE';
+
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function makeGrid(seed) { const r = rng(seed); return Array.from({ length: ROWS }, () => Array.from({ length: COLS }, () => Math.floor(r() * 5))); }
+function group(g, r0, c0) {
+  const col = g[r0][c0]; if (col < 0) return [];
+  const seen = new Set([r0 * COLS + c0]), out = [[r0, c0]];
+  for (let i = 0; i < out.length; i++) {
+    const [r, c] = out[i];
+    for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const nr = r + dr, nc = c + dc, k = nr * COLS + nc;
+      if (nr < 0 || nc < 0 || nr >= ROWS || nc >= COLS || seen.has(k) || g[nr][nc] !== col) continue;
+      seen.add(k); out.push([nr, nc]);
+    }
+  }
+  return out;
+}
+function collapse(g) {
+  const cols = [];
+  for (let c = 0; c < COLS; c++) { const s = []; for (let r = ROWS - 1; r >= 0; r--) if (g[r][c] >= 0) s.push(g[r][c]); cols.push(s); }
+  const full = cols.filter(s => s.length);
+  while (full.length < COLS) full.unshift([]);
+  return Array.from({ length: ROWS }, (_, r) => Array.from({ length: COLS }, (_, c) => { const s = full[c]; const i = ROWS - 1 - r; return i < s.length ? s[i] : -1; }));
+}
+function fresh(seed) { return { grid: makeGrid(seed), sel: [], anchor: null, score: 0, start: Date.now() }; }
+
+class Component extends DCLogic {
+  state = { games: [fresh(7), fresh(7)], now: Date.now() };
+  componentDidMount() { this.t = setInterval(() => this.setState({ now: Date.now() }), 1000); }
+  componentWillUnmount() { clearInterval(this.t); }
+  upd(i, fn) { this.setState(s => { const games = s.games.slice(); games[i] = { ...games[i], ...fn(games[i]) }; return { games }; }); }
+  tap(i, r, c) {
+    this.upd(i, g => {
+      const inSel = g.sel.some(([a, b]) => a === r && b === c);
+      if (inSel) {
+        const grid = g.grid.map(row => row.slice());
+        g.sel.forEach(([a, b]) => { grid[a][b] = -1; });
+        const n = g.sel.length;
+        return { grid: collapse(grid), sel: [], anchor: null, score: g.score + n * (n - 1) };
+      }
+      const grp = group(g.grid, r, c);
+      return grp.length >= 2 ? { sel: grp, anchor: [r, c] } : { sel: [], anchor: null };
+    });
+  }
+  view(i) {
+    const g = this.state.games[i];
+    const selSet = new Set(g.sel.map(([r, c]) => r * COLS + c));
+    const cells = [];
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      const v = g.grid[r][c];
+      cells.push({ ball: v < 0 ? 'transparent' : BALLS[v], cellBg: selSet.has(r * COLS + c) ? HILITE : 'transparent', onClick: () => v >= 0 && this.tap(i, r, c) });
+    }
+    const n = g.sel.length, secs = Math.floor((this.state.now - g.start) / 1000);
+    return {
+      cells, score: g.score, sel: n ? n * (n - 1) : '–',
+      time: `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`,
+      hasBubble: !!g.anchor, pts: n * (n - 1),
+      bx: g.anchor ? g.anchor[1] * CELL + CELL / 2 : 0,
+      by: g.anchor ? g.anchor[0] * CELL - 2 : 0,
+      newGame: () => this.upd(i, () => fresh(Math.floor(Math.random() * 1e6))),
+    };
+  }
+  renderVals() {
+    const ref = makeGrid(3);
+    return {
+      a: this.view(0), b: this.view(1),
+      refCells: ref.flat().map(v => ({ ball: BALLS[v] })),
+      bigBalls: BALLS.map(ball => ({ ball })),
+    };
+  }
+}
+</script>
+</body>
+</html>

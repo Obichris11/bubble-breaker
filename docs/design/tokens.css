@@ -1,0 +1,114 @@
+/* Bubble Breaker design tokens */
+:root {
+  /* Chrome */
+  --bb-face: #D4D0C8;          /* button / bar face */
+  --bb-hilight: #FFFFFF;       /* bevel light edge */
+  --bb-shadow: #808080;        /* bevel inner dark edge */
+  --bb-dkshadow: #404040;      /* bevel outer dark edge */
+  --bb-text: #000000;
+  --bb-text-muted: #404040;    /* 10.4:1 on white, 7.0:1 on --bb-face */
+  --bb-text-disabled: #6D6D6D; /* use with 1px white text-shadow */
+  --bb-title-from: #0A246A;
+  --bb-title-to: #3A6EA5;      /* white text ≥ 4.9:1 across the gradient */
+  --bb-title-text: #FFFFFF;
+  --bb-accent: #0A246A;        /* menu selection, form headings */
+  --bb-field: #FFFFFF;
+  --bb-tip: #FFFFE1;           /* points bubble, toasts */
+  --bb-desktop: #2F6468;       /* desktop backdrop only */
+
+  /* Bevels (box-shadow) */
+  --bb-bevel-out: inset -1px -1px 0 var(--bb-dkshadow), inset 1px 1px 0 var(--bb-hilight), inset -2px -2px 0 var(--bb-shadow), inset 2px 2px 0 var(--bb-face);
+  --bb-bevel-in: inset 1px 1px 0 var(--bb-dkshadow), inset -1px -1px 0 var(--bb-hilight), inset 2px 2px 0 var(--bb-shadow);
+  --bb-field-sunken: inset 1px 1px 0 var(--bb-shadow), inset -1px -1px 0 var(--bb-hilight), inset 2px 2px 0 var(--bb-dkshadow), inset -2px -2px 0 var(--bb-face);
+  --bb-default-ring: 0 0 0 1px #000;
+  --bb-popup-shadow: 2px 2px 0 rgba(0,0,0,.35);
+  --bb-focus-chrome: 1px dotted #000;  /* outline, offset -6px on buttons */
+
+  /* Board */
+  --bb-board-bg: #FFFFFF;
+  --bb-cols: 11;
+  --bb-rows: 12;
+  --bb-ball-ratio: 0.95;       /* ball diameter / cell */
+  --bb-cell-max: 72px;         /* 48px on desktop (pointer: fine) */
+  --bb-group-bg: #7486C4;      /* 3.2:1 vs white */
+  --bb-group-bg-grey: #8C8C8C;
+  --bb-focus-ring: 2px solid #000;     /* + 1px white keyline inside and outside */
+
+  /* Ball colours: highlight / body / edge */
+  --bb-red-hi: #F0503C;    --bb-red: #C81E0F;    --bb-red-edge: #500000;
+  --bb-blue-hi: #5064FF;   --bb-blue: #1414D2;   --bb-blue-edge: #00005A;
+  --bb-green-hi: #5AD25A;  --bb-green: #14A014;  --bb-green-edge: #003C00;
+  --bb-yellow-hi: #FFF078; --bb-yellow: #D2BE00; --bb-yellow-edge: #645A00;
+  --bb-purple-hi: #F064F0; --bb-purple: #B414B4; --bb-purple-edge: #4B004B;
+
+  /* Greyscale set: highlight / body / edge (+ pattern, see .bb-ball--g*) */
+  --bb-g1-hi: #C8C8C8; --bb-g1: #787878; --bb-g1-edge: #1E1E1E; /* diagonal  (red)    */
+  --bb-g2-hi: #8C8C8C; --bb-g2: #3A3A3A; --bb-g2-edge: #050505; /* solid     (blue)   */
+  --bb-g3-hi: #E6E6E6; --bb-g3: #A8A8A8; --bb-g3-edge: #3C3C3C; /* dotted    (green)  */
+  --bb-g4-hi: #FFFFFF; --bb-g4: #DADADA; --bb-g4-edge: #6E6E6E; /* banded    (yellow) */
+  --bb-g5-hi: #B4B4B4; --bb-g5: #5C5C5C; --bb-g5-edge: #101010; /* checkered (purple) */
+
+  /* Ball recipe layers */
+  --bb-specular: radial-gradient(circle at 30% 28%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.55) 5%, rgba(255,255,255,0) 11%);
+  --bb-edge-overlay: radial-gradient(circle farthest-side at 35% 30%, rgba(0,0,0,0) 45%, rgba(0,0,0,.7) 100%);
+
+  /* Type */
+  --bb-font: "Noto Sans", Verdana, "DejaVu Sans", sans-serif;
+  --bb-fs-s: 12px;   /* fields, notes, bubble */
+  --bb-fs-m: 13px;   /* body, buttons, menu, titles */
+  --bb-fs-score: 44px;
+
+  /* Sizes & spacing */
+  --bb-titlebar-h: 26px;
+  --bb-status-h: 30px;
+  --bb-field-h: 20px;
+  --bb-softkey-h: 44px;
+  --bb-menu-row-h: 40px;
+  --bb-target-min: 44px;
+  --bb-board-pad: 4px;
+  --bb-space-1: 2px; --bb-space-2: 4px; --bb-space-3: 6px; --bb-space-4: 8px; --bb-space-5: 12px; --bb-space-6: 16px;
+  --bb-radius: 0;          /* chrome is square */
+  --bb-radius-focus: 3px;  /* board focus ring only */
+
+  /* Z-index */
+  --bb-z-board: 0; --bb-z-hl: 1; --bb-z-ball: 2; --bb-z-ring: 3; --bb-z-bubble: 4;
+  --bb-z-toast: 10; --bb-z-paused: 20; --bb-z-softkeys: 30; --bb-z-menu: 40; --bb-z-dialog: 50;
+
+  /* Motion */
+  --bb-dur-bubble: 80ms;  --bb-ease-bubble: cubic-bezier(.2,0,0,1);
+  --bb-dur-pop: 160ms;    --bb-ease-pop: cubic-bezier(.4,0,1,1);
+  --bb-dur-fall: 240ms;   --bb-ease-fall: cubic-bezier(.55,0,1,.45);
+  --bb-dur-slide: 200ms;  --bb-ease-slide: cubic-bezier(.2,0,0,1);
+  --bb-dur-gameover: 500ms;
+  --bb-dur-toast: 150ms;  --bb-ease-toast: cubic-bezier(.2,0,0,1);
+}
+
+@media (pointer: fine) {
+  :root { --bb-cell-max: 48px; --bb-menu-row-h: 28px; --bb-softkey-h: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --bb-dur-bubble: 0ms; --bb-dur-pop: 80ms; --bb-ease-pop: linear; --bb-dur-fall: 0ms; --bb-dur-slide: 0ms; --bb-dur-gameover: 0ms; --bb-dur-toast: 0ms; }
+}
+
+/* Ball recipe */
+.bb-ball {
+  width: calc(var(--bb-ball-ratio) * 100%); aspect-ratio: 1; border-radius: 50%;
+  background: var(--bb-specular), radial-gradient(circle farthest-side at 35% 30%, var(--hi) 0%, var(--body) 40%, var(--edge) 100%);
+}
+.bb-ball--red    { --hi: var(--bb-red-hi);    --body: var(--bb-red);    --edge: var(--bb-red-edge); }
+.bb-ball--blue   { --hi: var(--bb-blue-hi);   --body: var(--bb-blue);   --edge: var(--bb-blue-edge); }
+.bb-ball--green  { --hi: var(--bb-green-hi);  --body: var(--bb-green);  --edge: var(--bb-green-edge); }
+.bb-ball--yellow { --hi: var(--bb-yellow-hi); --body: var(--bb-yellow); --edge: var(--bb-yellow-edge); }
+.bb-ball--purple { --hi: var(--bb-purple-hi); --body: var(--bb-purple); --edge: var(--bb-purple-edge); }
+/* Greyscale: specular, edge overlay, pattern, shading */
+.bb-ball--g1 { --hi: var(--bb-g1-hi); --body: var(--bb-g1); --edge: var(--bb-g1-edge);
+  background: var(--bb-specular), var(--bb-edge-overlay), repeating-linear-gradient(45deg, rgba(255,255,255,.5) 0 9%, rgba(255,255,255,0) 9% 22%), radial-gradient(circle farthest-side at 35% 30%, var(--hi) 0%, var(--body) 40%, var(--edge) 100%); }
+.bb-ball--g2 { --hi: var(--bb-g2-hi); --body: var(--bb-g2); --edge: var(--bb-g2-edge); }
+.bb-ball--g3 { --hi: var(--bb-g3-hi); --body: var(--bb-g3); --edge: var(--bb-g3-edge);
+  background: var(--bb-specular), var(--bb-edge-overlay), radial-gradient(circle, rgba(0,0,0,.55) 0 30%, rgba(0,0,0,0) 38%), radial-gradient(circle farthest-side at 35% 30%, var(--hi) 0%, var(--body) 40%, var(--edge) 100%);
+  background-size: 100% 100%, 100% 100%, 30% 30%, 100% 100%; }
+.bb-ball--g4 { --hi: var(--bb-g4-hi); --body: var(--bb-g4); --edge: var(--bb-g4-edge);
+  background: var(--bb-specular), var(--bb-edge-overlay), repeating-linear-gradient(0deg, rgba(0,0,0,.4) 0 10%, rgba(0,0,0,0) 10% 25%), radial-gradient(circle farthest-side at 35% 30%, var(--hi) 0%, var(--body) 40%, var(--edge) 100%); }
+.bb-ball--g5 { --hi: var(--bb-g5-hi); --body: var(--bb-g5); --edge: var(--bb-g5-edge);
+  background: var(--bb-specular), var(--bb-edge-overlay), conic-gradient(rgba(255,255,255,.45) 0 25%, rgba(255,255,255,0) 0 50%, rgba(255,255,255,.45) 0 75%, rgba(255,255,255,0) 0), radial-gradient(circle farthest-side at 35% 30%, var(--hi) 0%, var(--body) 40%, var(--edge) 100%);
+  background-size: 100% 100%, 100% 100%, 34% 34%, 100% 100%; }

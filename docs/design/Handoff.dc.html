@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#F4F3EF;font-family:"Noto Sans",Verdana,sans-serif;color:#1A1A1A;-webkit-font-smoothing:antialiased}a{color:#0A246A}a:hover{color:#3A6EA5}</style>
+</helmet>
+<div style="max-width:860px;margin:0 auto;padding:48px 24px 96px;display:flex;flex-direction:column;gap:36px;font:400 14px/1.6 'Noto Sans',Verdana,sans-serif;text-wrap:pretty">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font:700 26px/1.2 'Noto Sans'">Bubble Breaker: developer handoff</div>
+    <div style="color:#404040">Angular PWA, DOM + CSS rendering. Related files: <a href="Bubble Breaker Screens.dc.html">Screens</a> · <a href="Component Sheet.dc.html">Component Sheet</a> · <a href="tokens.css">tokens.css</a> · the <a href="Game Screen.dc.html">Game Screen</a> reference implementation</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font:700 17px 'Noto Sans';border-bottom:2px solid #0A246A;padding-bottom:4px">1 · Layout</div>
+    <div>The screen is a vertical flex column: title bar (26px), status strip (30px), board area (flex: 1, white) and softkey bar (44px touch, 32px with <code style="font-family:'JetBrains Mono';font-size:13px">pointer: fine</code>). The chrome never scales, only the board does.</div>
+    <pre style="margin:0;background:#1A1A1A;color:#F4F3EF;padding:14px 16px;font:400 13px/1.55 'JetBrains Mono';overflow:auto">avail_w = viewport_w − 2 × 4px
+avail_h = viewport_h − 26 − 30 − softkey_h − 4 (board bottom pad) − safe-area insets
+cell    = floor( min( avail_w / 11, avail_h / 12, cell_max ) )   // cell_max 72 touch, 48 desktop
+board  = 11·cell × 12·cell, centered horizontally, bottom-aligned in the board area</pre>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 18px;font-size:13px">
+      <div style="font-weight:700">360×640</div><div>cell 32px, board 352×384, 148px free above the board</div>
+      <div style="font-weight:700">390×844</div><div>cell 34px, board 374×408</div>
+      <div style="font-weight:700">768×1024</div><div>cell 69px, board 759×828</div>
+      <div style="font-weight:700">Desktop</div><div>centered app window sized to the board (cell 48px gives 536×692), bevelled frame, #2F6468 backdrop. If the viewport height is under 700px, recompute the cell from the height.</div>
+    </div>
+    <div>Always round the cell down to whole pixels so balls sit on integer positions. Use <code style="font-family:'JetBrains Mono';font-size:13px">100dvh</code> and <code style="font-family:'JetBrains Mono';font-size:13px">env(safe-area-inset-*)</code>, and recompute on <code style="font-family:'JetBrains Mono';font-size:13px">resize</code> (ResizeObserver on the board area). The board is bottom-aligned because balls fall downward: the bottom row stays in thumb reach and the space that clears opens up above. PWA notices use that free space at the top.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font:700 17px 'Noto Sans';border-bottom:2px solid #0A246A;padding-bottom:4px">2 · Interaction</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div><b>One pointer handler on the board.</b> Compute <code style="font-family:'JetBrains Mono';font-size:13px">col = floor(x / cell)</code> and <code style="font-family:'JetBrains Mono';font-size:13px">row = floor(y / cell)</code>. The whole square cell is the hit area (including the gaps and corners around the circle), so there are no dead zones between balls.</div>
+      <div><b>Keeping small balls forgiving.</b> At 32px a single cell is below 44px, but no action ever needs a precise tap on one ball. The first tap only previews, which is harmless. The confirming tap is accepted anywhere on the highlighted group, and a group always has at least 2 cells, so it is 64px or more along one axis. A mis-tap only moves or clears the highlight and never bursts anything. Use <code style="font-family:'JetBrains Mono';font-size:13px">touch-action: manipulation</code> so there is no double-tap zoom delay.</div>
+      <div><b>States.</b> Tapping a group of 2 or more selects it and shows the bubble. Tapping the same group again bursts it. Tapping another group moves the selection. Tapping a lone ball, an empty cell or outside the board clears it. Input is ignored during pop, fall and slide.</div>
+      <div><b>Burst sequence.</b> Pop the group. Apply gravity per column. Close empty columns to the right, so empty space collects on the left. Then check for game over: if no two orthogonal neighbours share a colour, wait 500ms and open Scoring.</div>
+      <div><b>Points bubble.</b> Anchored above the tapped ball, or below it when the ball is in the top row. Its centre is clamped 34px from the board edges. The bubble never intercepts input (<code style="font-family:'JetBrains Mono';font-size:13px">pointer-events: none</code>). The "Selected" field repeats the value.</div>
+      <div><b>Pause.</b> The timer stops while the Menu, any screen or a dialog is open, and while the page is hidden. On <code style="font-family:'JetBrains Mono';font-size:13px">visibilitychange → hidden</code> the game enters the Paused state and needs Resume. Save the board and elapsed time to storage on every burst and on pause.</div>
+      <div><b>Softkeys.</b> On the game screen: New Game (left) and Menu (right). On other screens: Done (left, returns to the game) and Menu (right). New Game during a game that is under way does not ask for confirmation, as in the original. The abandoned game is not counted in the statistics.</div>
+      <div><b>PWA.</b> Show "New version" when the service worker reports an update. Reload only when the player taps it, and save the game first. Show "Offline ready" once, on the first successful cache, and hide it after 4s. Offer Install only after the first finished game, and only when <code style="font-family:'JetBrains Mono';font-size:13px">beforeinstallprompt</code> is available. "Not now" suppresses it for 30 days.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font:700 17px 'Noto Sans';border-bottom:2px solid #0A246A;padding-bottom:4px">3 · Motion</div>
+    <div style="display:grid;grid-template-columns:1.1fr 1.8fr .7fr 1.5fr 1.6fr;font-size:13px;background:#fff;box-shadow:0 0 0 1px #808080">
+      <div style="font-weight:700;padding:8px;background:#D4D0C8">Event</div><div style="font-weight:700;padding:8px;background:#D4D0C8">Animation</div><div style="font-weight:700;padding:8px;background:#D4D0C8">Duration</div><div style="font-weight:700;padding:8px;background:#D4D0C8">Easing</div><div style="font-weight:700;padding:8px;background:#D4D0C8">Reduced motion</div>
+      <sc-for list="{{ motion }}" as="m" hint-placeholder-count="8">
+        <div style="padding:8px;border-top:1px solid #D4D0C8">{{ m.e }}</div><div style="padding:8px;border-top:1px solid #D4D0C8">{{ m.a }}</div><div style="padding:8px;border-top:1px solid #D4D0C8;font-family:'JetBrains Mono';font-size:12px">{{ m.d }}</div><div style="padding:8px;border-top:1px solid #D4D0C8;font-family:'JetBrains Mono';font-size:12px">{{ m.k }}</div><div style="padding:8px;border-top:1px solid #D4D0C8">{{ m.r }}</div>
+      </sc-for>
+    </div>
+    <div>Animate only <code style="font-family:'JetBrains Mono';font-size:13px">transform</code> and <code style="font-family:'JetBrains Mono';font-size:13px">opacity</code>. Every ball is an absolutely positioned element keyed by a stable ball id (use trackBy in Angular) and placed with <code style="font-family:'JetBrains Mono';font-size:13px">translate(col·cell, row·cell)</code>. Changing the transform with the right transition set produces the fall and slide animations. Never re-create ball elements between phases, or the animation is lost. Wait for each phase with a timer (or <code style="font-family:'JetBrains Mono';font-size:13px">transitionend</code> on one ball) before starting the next. Menus appear instantly, as they did on the original device.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font:700 17px 'Noto Sans';border-bottom:2px solid #0A246A;padding-bottom:4px">4 · Accessibility (WCAG 2.2 AA)</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div><b>Contrast.</b> Black on #D4D0C8 is 13.6:1. White title text is at least 4.9:1 across the #0A246A→#3A6EA5 gradient. #404040 muted text is 10.4:1 on white. The group highlight #7486C4 is 3.2:1 against white (1.4.11), and #8C8C8C is 3.4:1 in greyscale. Bevel edges (#404040/#808080 on #D4D0C8) keep controls identifiable at 3:1 or more.</div>
+      <div><b>Keyboard.</b> The board is one focusable element (<code style="font-family:'JetBrains Mono';font-size:13px">tabindex="0"</code>) that manages its own cursor. Arrow keys move the cursor (it moves onto empty cells too and never wraps). Enter or Space selects, and again bursts. Esc clears the selection or closes the menu. N starts a new game and M opens the menu. The focus ring is 2px black with a 1px white keyline on both sides and shows only for keyboard input (<code style="font-family:'JetBrains Mono';font-size:13px">:focus-visible</code> behaviour). Chrome buttons use a 1px dotted focus rectangle. Menus support arrow keys, Home/End and Esc, and return focus to the Menu softkey. Dialogs trap focus, start on the safe button (Cancel) and close with Esc.</div>
+      <div><b>Screen readers.</b> The board has <code style="font-family:'JetBrains Mono';font-size:13px">role="application"</code> and an aria-label with the key help. A polite live region announces the cursor cell ("Row 4, column 7, blue, group of 6"), the selection ("6 blue balls selected, 30 points. Press Enter again to burst."), the burst result ("+30, score 1,234") and game over. The status fields are plain text.</div>
+      <div><b>Colour is never the only cue.</b> Selection is shown by a cell background with 3:1 contrast plus the bubble plus the live region. The Greyscale set differs by pattern (diagonal, solid, dotted, banded, checkered) and also by lightness. Colorful Breakers can show optional shape hints (▲ ● ■ ◆ ✚), which are off by default so idle balls match the reference.</div>
+      <div><b>Targets.</b> Softkeys, buttons and option rows are at least 44px high on touch. Menu rows are 40px high × 184px wide, which exceeds the 24px minimum in 2.5.8 and is traded for density.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font:700 17px 'Noto Sans';border-bottom:2px solid #0A246A;padding-bottom:4px">5 · Ball rendering recipe</div>
+    <pre style="margin:0;background:#1A1A1A;color:#F4F3EF;padding:14px 16px;font:400 13px/1.55 'JetBrains Mono';overflow:auto;white-space:pre-wrap">.cell { width: var(--cell); height: var(--cell); display: grid; place-items: center; }
+.ball {
+  width: 95%; height: 95%; border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.55) 5%, rgba(255,255,255,0) 11%),
+    radial-gradient(circle farthest-side at 35% 30%, var(--hi) 0%, var(--body) 40%, var(--edge) 100%);
+}</pre>
+    <div><code style="font-family:'JetBrains Mono';font-size:13px">farthest-side</code> is required. With the default <code style="font-family:'JetBrains Mono';font-size:13px">farthest-corner</code> the gradient ends at the corner of the box, outside the circle, and the lower-right edge never gets dark. With <code style="font-family:'JetBrains Mono';font-size:13px">farthest-side</code> the radius is 70% of the diameter, so the edge colour lands on the lower-right rim. Greyscale balls add two layers between the specular layer and the shading: an edge-darkening overlay and a pattern (see tokens.css, <code style="font-family:'JetBrains Mono';font-size:13px">.bb-ball--g1…g5</code>). Pattern sizes are in %, so they scale with the ball.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font:700 17px 'Noto Sans';border-bottom:2px solid #0A246A;padding-bottom:4px">6 · Dark theme</div>
+    <div>Skip it. The light grey chrome and white board are the look, and a dark version would be a new design rather than a variant. A dark board would also break the reference: the dark ball edges need white behind them to read as spheres. If a dark mode is ever needed, darken only the desktop backdrop and leave the app window as it is.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font:700 17px 'Noto Sans';border-bottom:2px solid #0A246A;padding-bottom:4px">7 · Do not get these wrong</div>
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <div>1. Empty columns close to the <b>right</b>. Empty space collects on the left.</div>
+      <div>2. Groups use 4-neighbour adjacency only, never diagonals. A single ball is never a group.</div>
+      <div>3. Score is n × (n − 1) per burst. There is no end bonus, and time is not scored.</div>
+      <div>4. Never change the idle ball rendering for highlight, focus or burst. Those cues go behind the ball or around it.</div>
+      <div>5. No outlines, drop shadows or reflections on the balls, and no grid lines. The board is pure #FFFFFF.</div>
+      <div>6. Keep ball DOM nodes stable (trackBy id). Move them with transform and never with top/left.</div>
+      <div>7. Game over opens Scoring automatically, and the finished game is added to the statistics exactly once.</div>
+      <div>8. Integer cell sizes. Recompute on resize and orientation change.</div>
+      <div>9. Don't ship proprietary fonts or logos. Use Noto Sans (OFL) and self-host it for offline use.</div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <div style="font:700 17px 'Noto Sans';border-bottom:2px solid #0A246A;padding-bottom:4px">8 · Tokens</div>
+    <div>All values are in <a href="tokens.css">tokens.css</a>: chrome colours, bevel shadows, the 3 stops for each ball colour, the greyscale stops and patterns, the ball recipe classes, ball ratio, board background, font stack, spacing, radii, z-index, motion durations and easings, plus overrides for <code style="font-family:'JetBrains Mono';font-size:13px">pointer: fine</code> and <code style="font-family:'JetBrains Mono';font-size:13px">prefers-reduced-motion</code>.</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return { motion: [
+      { e: 'Select group', a: 'Cell highlight and bubble appear; bubble fades in', d: '80ms', k: 'cubic-bezier(.2,0,0,1)', r: 'Instant' },
+      { e: 'Move / clear selection', a: 'Highlight swaps instantly; bubble moves without a tween', d: '0ms', k: '–', r: 'Same' },
+      { e: 'Burst (pop)', a: 'Ball scale 1→0.2 and opacity 1→0; highlight stays behind it', d: '160ms', k: 'cubic-bezier(.4,0,1,1)', r: 'Opacity fade only, 80ms linear' },
+      { e: 'Fall', a: 'translateY to the new row; all columns at once', d: '240ms', k: 'cubic-bezier(.55,0,1,.45)', r: 'Jump to final position' },
+      { e: 'Column slide right', a: 'translateX to the new column; starts after the fall', d: '200ms', k: 'cubic-bezier(.2,0,0,1)', r: 'Jump to final position' },
+      { e: 'Game over', a: 'Hold the final board, then open Scoring', d: '500ms delay', k: '–', r: 'No delay' },
+      { e: 'Toast in / out', a: 'Opacity 0→1 and translateY −4px→0', d: '150ms', k: 'cubic-bezier(.2,0,0,1)', r: 'Instant' },
+      { e: 'Menu, dialog', a: 'Appear instantly (authentic)', d: '0ms', k: '–', r: 'Same' },
+      { e: 'New Game', a: 'New board appears instantly', d: '0ms', k: '–', r: 'Same' },
+    ] };
+  }
+}
+</script>
+</body>
+</html>
