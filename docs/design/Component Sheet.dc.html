@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#DEDDD8;font-family:"Noto Sans",Verdana,sans-serif;-webkit-font-smoothing:antialiased}a{color:#0A246A}a:hover{color:#3A6EA5}</style>
+</helmet>
+<section style="padding:48px;display:flex;flex-direction:column;gap:48px;max-width:1280px">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <div style="font:700 22px 'Noto Sans';color:#1A1A1A">Bubble Breaker: component sheet</div>
+    <div style="font:400 13px 'Noto Sans';color:#3A3A3A">Back to the <a href="Bubble Breaker Screens.dc.html">Screens</a> · <a href="Handoff.dc.html">Handoff</a></div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="font:700 15px 'Noto Sans';color:#1A1A1A">1 · Balls vs. reference</div>
+    <div style="font:400 12px/1.5 'Noto Sans';color:#3A3A3A;max-width:760px;text-wrap:pretty">The colours below were sampled from your screenshot, so the CSS board repeats its exact layout. The top row compares both at the original ~20px pitch. The bottom row zooms 3× on the top-left 4×4 balls: the bitmap on the left and CSS at a real 60px cell on the right. The CSS stays sharp at any size.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:6px;background:#fff;padding:14px;box-shadow:0 0 0 1px #808080">
+        <img src="uploads/ref-1790532803447-d7bb.png" style="width:223px;height:225px;display:block">
+        <div style="font:400 11px 'JetBrains Mono';color:#404040">reference bitmap, 1×</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;background:#fff;padding:14px;box-shadow:0 0 0 1px #808080">
+        <div style="display:grid;grid-template-columns:repeat(11,20.27px);grid-auto-rows:20.45px;width:223px">
+          <sc-for list="{{ refCells }}" as="c" hint-placeholder-count="121"><div style="display:flex;align-items:center;justify-content:center"><div style="width:95%;height:95%;border-radius:50%;background:{{ c.bg }}"></div></div></sc-for>
+        </div>
+        <div style="font:400 11px 'JetBrains Mono';color:#404040">CSS, same layout, 1×</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;background:#fff;padding:14px;box-shadow:0 0 0 1px #808080">
+        <div style="width:243px;height:245px;background-image:url(uploads/ref-1790532803447-d7bb.png);background-size:669px 675px;background-position:0 0;image-rendering:pixelated"></div>
+        <div style="font:400 11px 'JetBrains Mono';color:#404040">reference, 3× crop</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;background:#fff;padding:14px;box-shadow:0 0 0 1px #808080">
+        <div style="display:grid;grid-template-columns:repeat(4,60.8px);grid-auto-rows:61.35px;width:243px;height:245px">
+          <sc-for list="{{ cropCells }}" as="c" hint-placeholder-count="16"><div style="display:flex;align-items:center;justify-content:center"><div style="width:95%;height:95%;border-radius:50%;background:{{ c.bg }}"></div></div></sc-for>
+        </div>
+        <div style="font:400 11px 'JetBrains Mono';color:#404040">CSS at 60px cell</div>
+      </div>
+    </div>
+    <div style="font:400 12px/1.5 'Noto Sans';color:#3A3A3A;max-width:760px;text-wrap:pretty">Measured from the bitmap: the pitch is 20.3px and the visible ball is about 18.5px (≈92%). The brief's 95% is kept as the token <span style="font-family:'JetBrains Mono'">--bb-ball-ratio</span>. Use 0.92 if you want the gap to match the bitmap pixel for pixel.</div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="font:700 15px 'Noto Sans';color:#1A1A1A">2 · Ball states (5 colours × normal / highlighted / focused / bursting)</div>
+    <div style="font:400 12px/1.5 'Noto Sans';color:#3A3A3A;max-width:760px;text-wrap:pretty">The ball layer is identical in every state. Highlighting paints the cell behind it (#7486C4, 3.2:1 against white), focus draws a black ring with a white keyline outside it, and bursting scales the ball while the cell colour stays behind it.</div>
+    <div style="display:grid;grid-template-columns:90px repeat(4,80px);gap:10px 18px;align-items:center;background:#fff;padding:18px;box-shadow:0 0 0 1px #808080;width:max-content">
+      <div></div>
+      <div style="font:700 11px 'JetBrains Mono';color:#404040">normal</div>
+      <div style="font:700 11px 'JetBrains Mono';color:#404040">highlighted</div>
+      <div style="font:700 11px 'JetBrains Mono';color:#404040">focused</div>
+      <div style="font:700 11px 'JetBrains Mono';color:#404040">bursting</div>
+      <sc-for list="{{ stateRows }}" as="r" hint-placeholder-count="5">
+        <div style="font:400 12px 'Noto Sans'">{{ r.name }}</div>
+        <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center"><div style="width:95%;height:95%;border-radius:50%;background:{{ r.bg }}"></div></div>
+        <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:#7486C4"><div style="width:95%;height:95%;border-radius:50%;background:{{ r.bg }}"></div></div>
+        <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;position:relative"><div style="width:95%;height:95%;border-radius:50%;background:{{ r.bg }}"></div><div style="position:absolute;inset:0;border:2px solid #000;box-shadow:0 0 0 1px #fff, inset 0 0 0 1px #fff;border-radius:3px"></div></div>
+        <div style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:#7486C4"><div style="width:95%;height:95%;border-radius:50%;background:{{ r.bg }};transform:scale(.55);opacity:.6"></div></div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="font:700 15px 'Noto Sans';color:#1A1A1A">3 · Greyscale Breakers and optional shape hints</div>
+    <div style="font:400 12px/1.5 'Noto Sans';color:#3A3A3A;max-width:760px;text-wrap:pretty">Each grey uses the same light position and edge fall-off as the colour balls. They differ in both lightness and pattern, and the pattern alone is enough to tell them apart. Shape hints are an opt-in setting for the Colorful set and are off by default, so idle balls match the reference.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:24px">
+      <div style="display:grid;grid-template-columns:repeat(5,96px);gap:12px;background:#fff;padding:18px;box-shadow:0 0 0 1px #808080">
+        <sc-for list="{{ greys }}" as="g" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+            <div style="width:72px;height:72px;border-radius:50%;background:{{ g.bg }};background-size:{{ g.bs }}"></div>
+            <div style="display:flex;gap:1px"><div style="width:22px;height:22px;border-radius:50%;background:{{ g.bg }};background-size:{{ g.bs }}"></div><div style="width:22px;height:22px;border-radius:50%;background:{{ g.bg }};background-size:{{ g.bs }}"></div><div style="width:22px;height:22px;border-radius:50%;background:{{ g.bg }};background-size:{{ g.bs }}"></div></div>
+            <div style="font:700 12px 'Noto Sans'">{{ g.name }}</div>
+            <div style="font:400 11px 'JetBrains Mono';color:#404040">replaces {{ g.of }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,80px);gap:12px;background:#fff;padding:18px;box-shadow:0 0 0 1px #808080">
+        <sc-for list="{{ glyphs }}" as="g" hint-placeholder-count="5">
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+            <div style="width:60px;height:60px;border-radius:50%;background:{{ g.bg }};display:flex;align-items:center;justify-content:center;color:{{ g.gc }};font-size:22px;line-height:1">{{ g.glyph }}</div>
+            <div style="font:400 11px 'JetBrains Mono';color:#404040">{{ g.name }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="font:700 15px 'Noto Sans';color:#1A1A1A">4 · Chrome</div>
+    <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+      <div style="display:flex;flex-direction:column;gap:10px;background:#fff;padding:18px;box-shadow:0 0 0 1px #808080;width:360px">
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">title bar · 26px</div>
+        <div style="height:26px;background:linear-gradient(90deg,#0A246A,#3A6EA5);color:#fff;display:flex;align-items:center;padding:0 8px;font:700 13px 'Noto Sans'">Bubble Breaker</div>
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">status strip · 30px, sunken fields 20px</div>
+        <div style="height:30px;display:flex;align-items:center;gap:4px;padding:0 4px;background:#D4D0C8;box-shadow:inset 0 1px 0 #fff, inset 0 -1px 0 #808080">
+          <div style="flex:1;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans';box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8"><div>Score</div><div style="font-weight:700">1,204</div></div>
+          <div style="flex:1;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans';box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8"><div>Selected</div><div style="font-weight:700">42</div></div>
+          <div style="width:84px;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans';box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8"><div>Time</div><div>3:07</div></div>
+        </div>
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">softkey bar · 44px (normal / Menu pressed)</div>
+        <div style="height:44px;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;box-sizing:border-box;background:#D4D0C8">
+          <div style="display:flex;align-items:center;justify-content:center;font:400 13px 'Noto Sans';box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8">New Game</div>
+          <div style="display:flex;align-items:center;justify-content:center;font:400 13px 'Noto Sans';padding-top:2px;box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">Menu</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;background:#fff;padding:18px;box-shadow:0 0 0 1px #808080">
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">buttons · 44px min height</div>
+        <div style="display:flex;gap:10px;align-items:center;background:#D4D0C8;padding:12px">
+          <div style="height:44px;padding:0 16px;display:flex;align-items:center;font:400 13px 'Noto Sans';box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8">Normal</div>
+          <div style="height:44px;padding:0 16px;display:flex;align-items:center;font:700 13px 'Noto Sans';box-shadow:0 0 0 1px #000, inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8">Default</div>
+          <div style="height:44px;padding:1px 15px 0 17px;display:flex;align-items:center;font:400 13px 'Noto Sans';box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">Pressed</div>
+          <div style="height:44px;padding:0 16px;display:flex;align-items:center;font:400 13px 'Noto Sans';box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8;outline:1px dotted #000;outline-offset:-6px">Focused</div>
+          <div style="height:44px;padding:0 16px;display:flex;align-items:center;font:400 13px 'Noto Sans';color:#6D6D6D;text-shadow:1px 1px 0 #fff;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8">Disabled</div>
+        </div>
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">radio / checkbox · 15px control, 44px row</div>
+        <div style="display:flex;gap:18px;align-items:center;padding:4px 0">
+          <div style="display:flex;gap:8px;align-items:center"><div style="width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8;display:flex;align-items:center;justify-content:center"><div style="width:5px;height:5px;border-radius:50%;background:#000"></div></div><div style="font:400 13px 'Noto Sans'">On</div></div>
+          <div style="display:flex;gap:8px;align-items:center"><div style="width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8"></div><div style="font:400 13px 'Noto Sans'">Off</div></div>
+          <div style="display:flex;gap:8px;align-items:center"><div style="width:15px;height:15px;background:#fff;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8;display:flex;align-items:center;justify-content:center;font:700 12px/1 'Noto Sans'">✓</div><div style="font:400 13px 'Noto Sans'">Checked</div></div>
+          <div style="display:flex;gap:8px;align-items:center;outline:1px dotted #000;outline-offset:3px"><div style="width:15px;height:15px;background:#fff;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8"></div><div style="font:400 13px 'Noto Sans'">Focused</div></div>
+          <div style="display:flex;gap:8px;align-items:center;opacity:.5"><div style="width:15px;height:15px;background:#D4D0C8;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8"></div><div style="font:400 13px 'Noto Sans'">Disabled</div></div>
+        </div>
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">points bubble (above / below for top row)</div>
+        <div style="display:flex;gap:14px;align-items:center">
+          <div style="background:#FFFFE1;border:1px solid #000;padding:1px 6px;font:700 12px 'Noto Sans';box-shadow:1px 1px 0 rgba(0,0,0,.35)">42 points</div>
+          <div style="background:#FFFFE1;border:1px solid #000;padding:1px 6px;font:700 12px 'Noto Sans';box-shadow:1px 1px 0 rgba(0,0,0,.35)">2 points</div>
+          <div style="font:400 12px 'Noto Sans';color:#404040">Clamped 34px from board edges</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;background:#fff;padding:18px;box-shadow:0 0 0 1px #808080">
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">popup menu · 40px rows, 184px wide</div>
+        <div style="width:184px;background:#fff;border:1px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.35);padding:2px 0;display:flex;flex-direction:column">
+          <div style="height:40px;display:flex;align-items:center;padding:0 12px;font:400 13px 'Noto Sans'">New Game</div>
+          <div style="height:1px;background:#808080;margin:2px 4px"></div>
+          <div style="height:40px;display:flex;align-items:center;padding:0 12px;font:400 13px 'Noto Sans';background:#0A246A;color:#fff">Statistics</div>
+          <div style="height:40px;display:flex;align-items:center;padding:0 12px;font:400 13px 'Noto Sans'">Options</div>
+          <div style="height:40px;display:flex;align-items:center;padding:0 12px;font:400 13px 'Noto Sans'">How to Play</div>
+          <div style="height:40px;display:flex;align-items:center;padding:0 12px;font:400 13px 'Noto Sans'">About</div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;background:#fff;padding:18px;box-shadow:0 0 0 1px #808080">
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">dialog · max 300px</div>
+        <div style="width:300px;background:#D4D0C8;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8, 2px 2px 0 rgba(0,0,0,.35);padding:3px">
+          <div style="height:22px;background:linear-gradient(90deg,#0A246A,#3A6EA5);color:#fff;font:700 12px 'Noto Sans';display:flex;align-items:center;padding:0 6px">Reset statistics</div>
+          <div style="padding:12px 10px 10px;display:flex;flex-direction:column;gap:14px">
+            <div style="font:400 13px/1.45 'Noto Sans'">Clear high score, average score, total score and games played? This cannot be undone.</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div style="height:44px;display:flex;align-items:center;justify-content:center;font:400 13px 'Noto Sans';box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8">Reset</div>
+              <div style="height:44px;display:flex;align-items:center;justify-content:center;font:700 13px 'Noto Sans';box-shadow:0 0 0 1px #000, inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8">Cancel</div>
+            </div>
+          </div>
+        </div>
+        <div style="font:400 12px/1.4 'Noto Sans';color:#404040;max-width:300px">Cancel is the default button. Esc cancels. Focus starts on Cancel and stays inside the dialog.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px;background:#fff;padding:18px;box-shadow:0 0 0 1px #808080;width:348px">
+        <div style="font:700 11px 'JetBrains Mono';color:#404040">toast / notice</div>
+        <div style="background:#FFFFE1;border:1px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.3);padding:6px 6px 6px 10px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;font:400 12px/1.4 'Noto Sans'"><b>New version available.</b> Reload to update. Your statistics are kept.</div>
+          <div style="height:44px;padding:0 14px;display:flex;align-items:center;font:400 13px 'Noto Sans';background:#D4D0C8;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8">Reload</div>
+        </div>
+        <div style="background:#FFFFE1;border:1px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.3);padding:8px 10px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;font:400 12px/1.4 'Noto Sans'"><b>Ready to play offline.</b> The game now works without a connection.</div>
+          <div style="font:700 14px 'Noto Sans'">×</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const PAL = [['#F0503C','#C81E0F','#500000'],['#5064FF','#1414D2','#00005A'],['#5AD25A','#14A014','#003C00'],['#FFF078','#D2BE00','#645A00'],['#F064F0','#B414B4','#4B004B']];
+const SPEC = 'radial-gradient(circle at 30% 28%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.55) 5%, rgba(255,255,255,0) 11%)';
+const shade = ([h, b, e]) => `radial-gradient(circle farthest-side at 35% 30%, ${h} 0%, ${b} 40%, ${e} 100%)`;
+const EDGE = 'radial-gradient(circle farthest-side at 35% 30%, rgba(0,0,0,0) 45%, rgba(0,0,0,.7) 100%)';
+const BALL = PAL.map(p => `${SPEC}, ${shade(p)}`);
+const GREY = [
+  { name: 'Diagonal', of: 'red', s: ['#C8C8C8','#787878','#1E1E1E'], p: 'repeating-linear-gradient(45deg, rgba(255,255,255,.5) 0 9%, rgba(255,255,255,0) 9% 22%)', z: '100% 100%' },
+  { name: 'Solid', of: 'blue', s: ['#8C8C8C','#3A3A3A','#050505'], p: null },
+  { name: 'Dotted', of: 'green', s: ['#E6E6E6','#A8A8A8','#3C3C3C'], p: 'radial-gradient(circle, rgba(0,0,0,.55) 0 30%, rgba(0,0,0,0) 38%)', z: '30% 30%' },
+  { name: 'Banded', of: 'yellow', s: ['#FFFFFF','#DADADA','#6E6E6E'], p: 'repeating-linear-gradient(0deg, rgba(0,0,0,.4) 0 10%, rgba(0,0,0,0) 10% 25%)', z: '100% 100%' },
+  { name: 'Checkered', of: 'purple', s: ['#B4B4B4','#5C5C5C','#101010'], p: 'conic-gradient(rgba(255,255,255,.45) 0 25%, rgba(255,255,255,0) 0 50%, rgba(255,255,255,.45) 0 75%, rgba(255,255,255,0) 0)', z: '34% 34%' },
+];
+const REF = ['43131012404','34243432402','24023044201','34033042101','14200030110','00144441013','20013204112','24032142243','22123200323','31301311140','02004120430'];
+const NAMES = ['Red', 'Blue', 'Green', 'Yellow', 'Purple'];
+const GLYPH = ['▲', '●', '■', '◆', '✚'];
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      refCells: REF.join('').split('').map(k => ({ bg: BALL[+k] })),
+      cropCells: REF.slice(0, 4).map(r => r.slice(0, 4)).join('').split('').map(k => ({ bg: BALL[+k] })),
+      stateRows: NAMES.map((name, i) => ({ name, bg: BALL[i] })),
+      greys: GREY.map(g => ({ name: g.name, of: g.of, bg: g.p ? `${SPEC}, ${EDGE}, ${g.p}, ${shade(g.s)}` : `${SPEC}, ${shade(g.s)}`, bs: g.p ? `100% 100%, 100% 100%, ${g.z}, 100% 100%` : '100% 100%, 100% 100%' })),
+      glyphs: NAMES.map((name, i) => ({ name: `${name} ${GLYPH[i]}`, glyph: GLYPH[i], bg: BALL[i], gc: i === 3 ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.8)' })),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+</helmet>
+<div style="width:100%;height:100%;background:#D4D0C8;display:flex;flex-direction:column;overflow:hidden;position:relative;font-family:'Noto Sans',Verdana,sans-serif;color:#000;box-shadow:0 0 0 1px #404040;-webkit-font-smoothing:antialiased">
+  <div style="height:26px;flex:none;background:linear-gradient(90deg,#0A246A,#3A6EA5);color:#fff;display:flex;align-items:center;padding:0 8px">
+    <div style="font:700 13px 'Noto Sans',Verdana,sans-serif">Bubble Breaker</div>
+  </div>
+
+  <sc-if value="{{ isGame }}" hint-placeholder-val="{{ true }}">
+    <div style="height:30px;flex:none;display:flex;align-items:center;gap:4px;padding:0 4px;background:#D4D0C8;box-shadow:inset 0 1px 0 #fff, inset 0 -1px 0 #808080">
+      <div style="flex:1;min-width:0;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans',Verdana,sans-serif;font-variant-numeric:tabular-nums;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8">
+        <div>Score</div><div style="font-weight:700">{{ scoreText }}</div>
+      </div>
+      <div style="flex:1;min-width:0;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans',Verdana,sans-serif;font-variant-numeric:tabular-nums;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8">
+        <div>Selected</div><div style="font-weight:700">{{ selText }}</div>
+      </div>
+      <div style="width:84px;flex:none;height:20px;display:flex;align-items:center;justify-content:space-between;padding:0 6px;background:#fff;font:400 12px 'Noto Sans',Verdana,sans-serif;font-variant-numeric:tabular-nums;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8">
+        <div>Time</div><div>{{ timeText }}</div>
+      </div>
+    </div>
+    <div style="flex:1;min-height:0;background:#fff;position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:4px;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff">
+      <div tabIndex="0" role="application" aria-label="Bubble Breaker board, 11 columns by 12 rows. Arrow keys move, Enter selects or bursts, Escape clears." onClick="{{ onBoardClick }}" onKeyDown="{{ onKey }}" onFocus="{{ onFocus }}" onBlur="{{ onBlur }}" style="position:relative;width:{{ bw }}px;height:{{ bh }}px;outline:none;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent">
+        <sc-for list="{{ hl }}" as="h" hint-placeholder-count="0">
+          <div style="position:absolute;left:{{ h.x }}px;top:{{ h.y }}px;width:{{ cell }}px;height:{{ cell }}px;background:{{ hlColor }}"></div>
+        </sc-for>
+        <sc-for list="{{ balls }}" as="b" hint-placeholder-count="0">
+          <div style="position:absolute;left:0;top:0;width:{{ cell }}px;height:{{ cell }}px;transform:{{ b.tf }};transition:{{ tr }};display:flex;align-items:center;justify-content:center;pointer-events:none">
+            <div style="width:95%;height:95%;border-radius:50%;background:{{ b.bg }};background-size:{{ b.bs }};transform:{{ b.sc }};opacity:{{ b.op }};transition:{{ popTr }};display:flex;align-items:center;justify-content:center;color:{{ b.gc }};font-size:{{ glyphSize }}px;line-height:1">{{ b.glyph }}</div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ showFocus }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:{{ fx }}px;top:{{ fy }}px;width:{{ cell }}px;height:{{ cell }}px;box-sizing:border-box;border:2px solid #000;box-shadow:0 0 0 1px #fff, inset 0 0 0 1px #fff;border-radius:3px;pointer-events:none"></div>
+        </sc-if>
+        <sc-if value="{{ hasBubble }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:{{ bx }}px;top:{{ by }}px;transform:{{ bubbleTf }};background:#FFFFE1;border:1px solid #000;padding:1px 6px;font:700 12px 'Noto Sans',Verdana,sans-serif;color:#000;pointer-events:none;white-space:nowrap;box-shadow:1px 1px 0 rgba(0,0,0,.35)">{{ pts }}</div>
+        </sc-if>
+      </div>
+      <div aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">{{ live }}</div>
+
+      <sc-if value="{{ toastUpdate }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="position:absolute;top:8px;left:6px;right:6px;background:#FFFFE1;border:1px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.3);padding:6px 6px 6px 10px;display:flex;align-items:center;gap:8px">
+          <div style="flex:1;font:400 12px/1.4 'Noto Sans',Verdana,sans-serif"><b>New version available.</b> Reload to update. Your statistics are kept.</div>
+          <button type="button" onClick="{{ closeToast }}" style="border:0;font:400 13px 'Noto Sans',Verdana,sans-serif;color:#000;background:#D4D0C8;height:44px;padding:0 14px;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px" style-active="box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">Reload</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ toastOffline }}" hint-placeholder-val="{{ false }}">
+        <div role="status" style="position:absolute;top:8px;left:6px;right:6px;background:#FFFFE1;border:1px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.3);padding:8px 10px;display:flex;align-items:center;gap:8px;min-height:28px">
+          <div style="flex:1;font:400 12px/1.4 'Noto Sans',Verdana,sans-serif"><b>Ready to play offline.</b> The game now works without a connection.</div>
+          <button type="button" aria-label="Dismiss" onClick="{{ closeToast }}" style="border:0;background:transparent;width:44px;height:44px;margin:-8px -10px -8px 0;font:700 14px 'Noto Sans',Verdana,sans-serif;color:#000;cursor:pointer" style-focus="outline:1px dotted #000;outline-offset:-10px">×</button>
+        </div>
+      </sc-if>
+      <sc-if value="{{ toastInstall }}" hint-placeholder-val="{{ false }}">
+        <div role="dialog" aria-label="Install" style="position:absolute;top:8px;left:6px;right:6px;background:#FFFFE1;border:1px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.3);padding:8px 10px;display:flex;flex-direction:column;gap:8px">
+          <div style="font:400 12px/1.4 'Noto Sans',Verdana,sans-serif"><b>Install Bubble Breaker</b><br>Add it to your home screen to play full screen and offline.</div>
+          <div style="display:flex;gap:6px;justify-content:flex-end">
+            <button type="button" onClick="{{ closeToast }}" style="border:0;font:400 13px 'Noto Sans',Verdana,sans-serif;color:#000;background:#D4D0C8;height:44px;padding:0 14px;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px">Not now</button>
+            <button type="button" onClick="{{ closeToast }}" style="border:0;font:700 13px 'Noto Sans',Verdana,sans-serif;color:#000;background:#D4D0C8;height:44px;padding:0 18px;cursor:pointer;box-shadow:0 0 0 1px #000, inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px">Install</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ paused }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background:rgba(255,255,255,.88);display:flex;align-items:center;justify-content:center">
+          <div role="dialog" aria-label="Paused" style="width:220px;background:#D4D0C8;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8, 2px 2px 0 rgba(0,0,0,.3);padding:3px">
+            <div style="height:22px;background:linear-gradient(90deg,#0A246A,#3A6EA5);color:#fff;font:700 12px 'Noto Sans',Verdana,sans-serif;display:flex;align-items:center;padding:0 6px">Paused</div>
+            <div style="padding:12px 10px 10px;display:flex;flex-direction:column;gap:12px">
+              <div style="font:400 13px/1.4 'Noto Sans',Verdana,sans-serif">The timer is stopped. Your board is saved.</div>
+              <button type="button" onClick="{{ resume }}" style="border:0;font:700 13px 'Noto Sans',Verdana,sans-serif;color:#000;background:#D4D0C8;height:44px;cursor:pointer;box-shadow:0 0 0 1px #000, inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px">Resume</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isScoring }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow:auto;background:#fff;padding:10px 12px 12px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 1px 1px 0 #808080">
+      <div style="font:700 13px 'Noto Sans',Verdana,sans-serif;color:#0A246A;padding-bottom:4px;border-bottom:1px solid #0A246A">Game over</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 6px">
+        <div style="font:400 12px 'Noto Sans',Verdana,sans-serif;color:#404040">No groups left. Your score</div>
+        <div style="font:700 44px/1.1 'Noto Sans',Verdana,sans-serif;font-variant-numeric:tabular-nums">{{ lastScore }}</div>
+        <sc-if value="{{ isNewHigh }}" hint-placeholder-val="{{ false }}">
+          <div style="font:700 12px 'Noto Sans',Verdana,sans-serif;background:#FFFFE1;border:1px solid #000;padding:1px 8px">New high score</div>
+        </sc-if>
+        <div style="font:400 12px 'Noto Sans',Verdana,sans-serif;color:#404040">Time {{ lastTime }} (not scored)</div>
+      </div>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ statRows }}" as="s" hint-placeholder-count="4">
+          <div style="display:flex;justify-content:space-between;align-items:center;min-height:30px;border-bottom:1px solid #D4D0C8;font:400 13px 'Noto Sans',Verdana,sans-serif;font-variant-numeric:tabular-nums">
+            <div>{{ s.label }}</div><div style="font-weight:700">{{ s.value }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <button type="button" onClick="{{ newGame }}" style="margin-top:auto;border:0;font:700 13px 'Noto Sans',Verdana,sans-serif;color:#000;background:#D4D0C8;height:44px;cursor:pointer;box-shadow:0 0 0 1px #000, inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px" style-active="box-shadow:0 0 0 1px #000, inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">New Game</button>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isStats }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow:auto;background:#fff;padding:10px 12px 12px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 1px 1px 0 #808080">
+      <div style="font:700 13px 'Noto Sans',Verdana,sans-serif;color:#0A246A;padding-bottom:4px;border-bottom:1px solid #0A246A">Statistics</div>
+      <div style="display:flex;flex-direction:column">
+        <sc-for list="{{ statRowsFull }}" as="s" hint-placeholder-count="5">
+          <div style="display:flex;justify-content:space-between;align-items:center;min-height:30px;border-bottom:1px solid #D4D0C8;font:400 13px 'Noto Sans',Verdana,sans-serif;font-variant-numeric:tabular-nums">
+            <div>{{ s.label }}</div><div style="font-weight:700">{{ s.value }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font:400 12px/1.4 'Noto Sans',Verdana,sans-serif;color:#404040">Statistics are stored on this device only.</div>
+      <div style="display:flex">
+        <button type="button" onClick="{{ askReset }}" style="border:0;font:400 13px 'Noto Sans',Verdana,sans-serif;color:#000;background:#D4D0C8;height:44px;padding:0 16px;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px" style-active="box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">Reset statistics…</button>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isOptions }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow:auto;background:#fff;padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;box-shadow:inset 1px 1px 0 #808080">
+      <div style="font:700 13px 'Noto Sans',Verdana,sans-serif;color:#0A246A;padding-bottom:4px;border-bottom:1px solid #0A246A">Options</div>
+      <div style="font:700 12px 'Noto Sans',Verdana,sans-serif;margin-top:6px">Breaker Set</div>
+      <div role="radiogroup" aria-label="Breaker Set" style="display:flex;flex-direction:column">
+        <div role="radio" aria-checked="{{ isColor }}" tabIndex="0" onClick="{{ setColor }}" style="min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer" style-focus="outline:1px dotted #000;outline-offset:-2px">
+          <div style="width:15px;height:15px;flex:none;border-radius:50%;background:#fff;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8;display:flex;align-items:center;justify-content:center">
+            <sc-if value="{{ isColor }}" hint-placeholder-val="{{ true }}"><div style="width:5px;height:5px;border-radius:50%;background:#000"></div></sc-if>
+          </div>
+          <div style="flex:1;font:400 13px 'Noto Sans',Verdana,sans-serif">Colorful Breakers</div>
+          <div style="display:flex;gap:1px">
+            <sc-for list="{{ prevColor }}" as="p" hint-placeholder-count="5"><div style="width:19px;height:19px;border-radius:50%;background:{{ p.bg }};background-size:{{ p.bs }}"></div></sc-for>
+          </div>
+        </div>
+        <div role="radio" aria-checked="{{ isGrey }}" tabIndex="0" onClick="{{ setGrey }}" style="min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer" style-focus="outline:1px dotted #000;outline-offset:-2px">
+          <div style="width:15px;height:15px;flex:none;border-radius:50%;background:#fff;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8;display:flex;align-items:center;justify-content:center">
+            <sc-if value="{{ isGrey }}" hint-placeholder-val="{{ false }}"><div style="width:5px;height:5px;border-radius:50%;background:#000"></div></sc-if>
+          </div>
+          <div style="flex:1;font:400 13px 'Noto Sans',Verdana,sans-serif">Greyscale Breakers</div>
+          <div style="display:flex;gap:1px">
+            <sc-for list="{{ prevGrey }}" as="p" hint-placeholder-count="5"><div style="width:19px;height:19px;border-radius:50%;background:{{ p.bg }};background-size:{{ p.bs }}"></div></sc-for>
+          </div>
+        </div>
+      </div>
+      <div style="font:700 12px 'Noto Sans',Verdana,sans-serif;margin-top:8px">Accessibility and sound</div>
+      <div role="checkbox" aria-checked="{{ hints }}" aria-disabled="{{ isGrey }}" tabIndex="0" onClick="{{ toggleHints }}" style="min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer;opacity:{{ hintsOpacity }}" style-focus="outline:1px dotted #000;outline-offset:-2px">
+        <div style="width:15px;height:15px;flex:none;background:#fff;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8;display:flex;align-items:center;justify-content:center;font:700 12px/1 'Noto Sans',Verdana,sans-serif">{{ hintsMark }}</div>
+        <div style="display:flex;flex-direction:column;gap:1px">
+          <div style="font:400 13px 'Noto Sans',Verdana,sans-serif">Shape hints on Colorful Breakers</div>
+          <div style="font:400 12px 'Noto Sans',Verdana,sans-serif;color:#404040">Adds a small symbol to each color. Off by default.</div>
+        </div>
+      </div>
+      <div role="checkbox" aria-checked="{{ sound }}" tabIndex="0" onClick="{{ toggleSound }}" style="min-height:44px;display:flex;align-items:center;gap:10px;cursor:pointer" style-focus="outline:1px dotted #000;outline-offset:-2px">
+        <div style="width:15px;height:15px;flex:none;background:#fff;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff, inset 2px 2px 0 #404040, inset -2px -2px 0 #D4D0C8;display:flex;align-items:center;justify-content:center;font:700 12px/1 'Noto Sans',Verdana,sans-serif">{{ soundMark }}</div>
+        <div style="font:400 13px 'Noto Sans',Verdana,sans-serif">Sound</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isHowto }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow:auto;background:#fff;padding:10px 12px 12px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 1px 1px 0 #808080;font:400 13px/1.45 'Noto Sans',Verdana,sans-serif;text-wrap:pretty">
+      <div style="font:700 13px 'Noto Sans',Verdana,sans-serif;color:#0A246A;padding-bottom:4px;border-bottom:1px solid #0A246A">How to Play</div>
+      <div>Tap a group of two or more touching balls of the same color. The group is highlighted and shows the points it is worth.</div>
+      <div>Tap the group again to burst it. Balls above fall down, and empty columns close up to the right.</div>
+      <div style="display:flex;flex-direction:column;gap:4px;padding:8px 10px;background:#F4F3EF;box-shadow:inset 1px 1px 0 #808080, inset -1px -1px 0 #fff">
+        <div style="font-weight:700">Points = n × (n − 1)</div>
+        <div style="display:grid;grid-template-columns:auto auto auto auto;gap:2px 16px;font-size:12px;font-variant-numeric:tabular-nums;justify-content:start">
+          <div>2 balls</div><div style="font-weight:700">2</div><div>5 balls</div><div style="font-weight:700">20</div>
+          <div>10 balls</div><div style="font-weight:700">90</div><div>20 balls</div><div style="font-weight:700">380</div>
+        </div>
+      </div>
+      <div>Big groups score far more, so plan ahead. The game ends when no two touching balls share a color. There is no undo.</div>
+      <div style="font-size:12px;color:#404040">Keyboard: arrow keys move, Enter or Space selects and bursts, Esc clears the selection.</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isAbout }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow:auto;background:#fff;padding:10px 12px 12px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 1px 1px 0 #808080;font:400 13px/1.45 'Noto Sans',Verdana,sans-serif;text-wrap:pretty">
+      <div style="font:700 13px 'Noto Sans',Verdana,sans-serif;color:#0A246A;padding-bottom:4px;border-bottom:1px solid #0A246A">About</div>
+      <div style="display:flex;gap:10px;align-items:center;padding:6px 0">
+        <div style="display:grid;grid-template-columns:repeat(2,20px);gap:1px">
+          <sc-for list="{{ aboutBalls }}" as="p" hint-placeholder-count="4"><div style="width:20px;height:20px;border-radius:50%;background:{{ p.bg }}"></div></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column">
+          <div style="font-weight:700">Bubble Breaker</div>
+          <div style="font-size:12px;color:#404040">Version 1.0.0</div>
+        </div>
+      </div>
+      <div>A tribute to the pocket-computer puzzle classic Jawbreaker by oopdreams. Not affiliated with any original publisher.</div>
+      <div style="font-size:12px;color:#404040">Works offline once loaded. No accounts, no tracking. Statistics stay on this device.</div>
+    </div>
+  </sc-if>
+
+  <div style="height:44px;flex:none;display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:2px;box-sizing:border-box;background:#D4D0C8;box-shadow:inset 0 1px 0 #fff;position:relative;z-index:3">
+    <button type="button" onClick="{{ leftAction }}" style="border:0;background:#D4D0C8;font:400 13px 'Noto Sans',Verdana,sans-serif;color:#000;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px" style-active="box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">{{ leftKey }}</button>
+    <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+      <button type="button" aria-expanded="true" onClick="{{ toggleMenu }}" style="border:0;background:#D4D0C8;font:400 13px 'Noto Sans',Verdana,sans-serif;color:#000;cursor:pointer;box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080;padding-top:2px" style-focus="outline:1px dotted #000;outline-offset:-6px">Menu</button>
+    </sc-if>
+    <sc-if value="{{ menuClosed }}" hint-placeholder-val="{{ true }}">
+      <button type="button" aria-expanded="false" onClick="{{ toggleMenu }}" style="border:0;background:#D4D0C8;font:400 13px 'Noto Sans',Verdana,sans-serif;color:#000;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px" style-active="box-shadow:inset 1px 1px 0 #404040, inset -1px -1px 0 #fff, inset 2px 2px 0 #808080">Menu</button>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ toggleMenu }}" style="position:absolute;left:0;right:0;top:0;bottom:44px;z-index:4"></div>
+    <div role="menu" style="position:absolute;right:2px;bottom:46px;width:184px;background:#fff;border:1px solid #000;box-shadow:2px 2px 0 rgba(0,0,0,.35);padding:2px 0;z-index:5;display:flex;flex-direction:column">
+      <sc-for list="{{ menuItems }}" as="m" hint-placeholder-count="5">
+        <sc-if value="{{ m.sepBefore }}" hint-placeholder-val="{{ false }}"><div style="height:1px;background:#808080;margin:2px 4px"></div></sc-if>
+        <div role="menuitem" tabIndex="0" onClick="{{ m.onClick }}" style="height:40px;display:flex;align-items:center;padding:0 12px;font:400 13px 'Noto Sans',Verdana,sans-serif;background:{{ m.bg }};color:{{ m.fg }};cursor:pointer" style-hover="background:#0A246A;color:#fff" style-focus="background:#0A246A;color:#fff;outline:none">{{ m.label }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ dialogReset }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;z-index:6;padding:0 16px">
+      <div role="alertdialog" aria-label="Reset statistics" style="width:100%;max-width:300px;background:#D4D0C8;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8, 2px 2px 0 rgba(0,0,0,.35);padding:3px">
+        <div style="height:22px;background:linear-gradient(90deg,#0A246A,#3A6EA5);color:#fff;font:700 12px 'Noto Sans',Verdana,sans-serif;display:flex;align-items:center;padding:0 6px">Reset statistics</div>
+        <div style="padding:12px 10px 10px;display:flex;flex-direction:column;gap:14px">
+          <div style="font:400 13px/1.45 'Noto Sans',Verdana,sans-serif;text-wrap:pretty">Clear high score, average score, total score and games played? This cannot be undone.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <button type="button" onClick="{{ doReset }}" style="border:0;font:400 13px 'Noto Sans',Verdana,sans-serif;color:#000;background:#D4D0C8;height:44px;cursor:pointer;box-shadow:inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px">Reset</button>
+            <button type="button" onClick="{{ cancelReset }}" style="border:0;font:700 13px 'Noto Sans',Verdana,sans-serif;color:#000;background:#D4D0C8;height:44px;cursor:pointer;box-shadow:0 0 0 1px #000, inset -1px -1px 0 #404040, inset 1px 1px 0 #fff, inset -2px -2px 0 #808080, inset 2px 2px 0 #D4D0C8" style-focus="outline:1px dotted #000;outline-offset:-6px">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:360,&quot;height&quot;:640},&quot;w&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:360,&quot;tsType&quot;:&quot;number&quot;},&quot;h&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:640,&quot;tsType&quot;:&quot;number&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;idle&quot;,&quot;highlight&quot;,&quot;focus&quot;,&quot;burst&quot;,&quot;fall&quot;,&quot;slide&quot;,&quot;paused&quot;],&quot;default&quot;:&quot;idle&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;game&quot;,&quot;scoring&quot;,&quot;stats&quot;,&quot;options&quot;,&quot;howto&quot;,&quot;about&quot;],&quot;default&quot;:&quot;game&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;set&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;color&quot;,&quot;grey&quot;],&quot;default&quot;:&quot;color&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hints&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;menu&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;dialog&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;reset&quot;],&quot;default&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;toast&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;none&quot;,&quot;update&quot;,&quot;offline&quot;,&quot;install&quot;],&quot;default&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;live&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;reducedMotion&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;maxCell&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:72,&quot;tsType&quot;:&quot;number&quot;},&quot;seed&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:11,&quot;tsType&quot;:&quot;number&quot;}}">
+const COLS = 11, ROWS = 12, N = COLS * ROWS;
+const CHROME_H = 26 + 30 + 44 + 8;
+const PAL = [['#F0503C','#C81E0F','#500000'],['#5064FF','#1414D2','#00005A'],['#5AD25A','#14A014','#003C00'],['#FFF078','#D2BE00','#645A00'],['#F064F0','#B414B4','#4B004B']];
+const SPEC = 'radial-gradient(circle at 30% 28%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.55) 5%, rgba(255,255,255,0) 11%)';
+const shade = ([h, b, e]) => `radial-gradient(circle farthest-side at 35% 30%, ${h} 0%, ${b} 40%, ${e} 100%)`;
+const EDGE = 'radial-gradient(circle farthest-side at 35% 30%, rgba(0,0,0,0) 45%, rgba(0,0,0,.7) 100%)';
+const GREY = [
+  { s: ['#C8C8C8','#787878','#1E1E1E'], p: 'repeating-linear-gradient(45deg, rgba(255,255,255,.5) 0 9%, rgba(255,255,255,0) 9% 22%)', z: '100% 100%' },
+  { s: ['#8C8C8C','#3A3A3A','#050505'], p: null },
+  { s: ['#E6E6E6','#A8A8A8','#3C3C3C'], p: 'radial-gradient(circle, rgba(0,0,0,.55) 0 30%, rgba(0,0,0,0) 38%)', z: '30% 30%' },
+  { s: ['#FFFFFF','#DADADA','#6E6E6E'], p: 'repeating-linear-gradient(0deg, rgba(0,0,0,.4) 0 10%, rgba(0,0,0,0) 10% 25%)', z: '100% 100%' },
+  { s: ['#B4B4B4','#5C5C5C','#101010'], p: 'conic-gradient(rgba(255,255,255,.45) 0 25%, rgba(255,255,255,0) 0 50%, rgba(255,255,255,.45) 0 75%, rgba(255,255,255,0) 0)', z: '34% 34%' },
+];
+const LOOK = {
+  color: PAL.map(p => ({ bg: `${SPEC}, ${shade(p)}`, bs: '100% 100%, 100% 100%' })),
+  grey: GREY.map(g => g.p ? { bg: `${SPEC}, ${EDGE}, ${g.p}, ${shade(g.s)}`, bs: `100% 100%, 100% 100%, ${g.z}, 100% 100%` } : { bg: `${SPEC}, ${shade(g.s)}`, bs: '100% 100%, 100% 100%' }),
+};
+const GLYPH = ['▲', '●', '■', '◆', '✚'];
+const GLYPH_C = ['rgba(255,255,255,.8)', 'rgba(255,255,255,.8)', 'rgba(255,255,255,.8)', 'rgba(0,0,0,.5)', 'rgba(255,255,255,.8)'];
+const NAMES = { color: ['red','blue','green','yellow','purple'], grey: ['striped','solid','dotted','banded','checkered'] };
+const DUR = { pop: 160, fall: 240, slide: 200 };
+
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function deal(seed) { const r = rng(seed); const colors = Array.from({ length: N }, () => Math.floor(r() * 5)); const grid = Array.from({ length: ROWS }, (_, y) => Array.from({ length: COLS }, (_, x) => y * COLS + x)); return { colors, grid }; }
+function groupAt(grid, colors, r0, c0) {
+  const id0 = grid[r0][c0]; if (id0 < 0) return [];
+  const col = colors[id0], seen = new Set([id0]), q = [[r0, c0]];
+  for (let i = 0; i < q.length; i++) { const [r, c] = q[i]; for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) { const nr = r + dr, nc = c + dc; if (nr < 0 || nc < 0 || nr >= ROWS || nc >= COLS) continue; const id = grid[nr][nc]; if (id < 0 || seen.has(id) || colors[id] !== col) continue; seen.add(id); q.push([nr, nc]); } }
+  return q;
+}
+function allGroups(grid, colors) { const seen = new Set(), out = []; for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const id = grid[r][c]; if (id < 0 || seen.has(id)) continue; const g = groupAt(grid, colors, r, c); g.forEach(([a, b]) => seen.add(grid[a][b])); if (g.length > 1) out.push(g); } return out; }
+function remove(grid, cells) { const g = grid.map(r => r.slice()); cells.forEach(([r, c]) => { g[r][c] = -1; }); return g; }
+function gravity(grid) { const g = Array.from({ length: ROWS }, () => Array(COLS).fill(-1)); for (let c = 0; c < COLS; c++) { let w = ROWS - 1; for (let r = ROWS - 1; r >= 0; r--) if (grid[r][c] >= 0) g[w--][c] = grid[r][c]; } return g; }
+function shiftRight(grid) { const cols = []; for (let c = 0; c < COLS; c++) if (grid.some(row => row[c] >= 0)) cols.push(c); const g = Array.from({ length: ROWS }, () => Array(COLS).fill(-1)); const off = COLS - cols.length; cols.forEach((c, i) => { for (let r = 0; r < ROWS; r++) g[r][off + i] = grid[r][c]; }); return g; }
+function emptyCols(grid) { let n = 0; for (let c = 0; c < COLS; c++) if (!grid.some(row => row[c] >= 0)) n++; return n; }
+function posMap(grid) { const m = {}; for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (grid[r][c] >= 0) m[grid[r][c]] = [r, c]; return m; }
+function largest(groups) { return groups.reduce((a, g) => g.length > a.length ? g : a, []); }
+function simulate(d, steps, seed) {
+  const r = rng(seed); let grid = d.grid, score = 0;
+  for (let i = 0; i < steps; i++) { const gs = allGroups(grid, d.colors); if (!gs.length) break; const g = gs[Math.floor(r() * gs.length)]; score += g.length * (g.length - 1); grid = shiftRight(gravity(remove(grid, g))); }
+  return { grid, score };
+}
+function lerpPos(a, b, t) { const m = {}; for (const id in b) { const p = a[id] || b[id]; m[id] = [p[0] + (b[id][0] - p[0]) * t, p[1] + (b[id][1] - p[1]) * t]; } return m; }
+const fmt = n => Number(n).toLocaleString('en-US');
+const clock = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const p = props, seed = Number(p.seed ?? 11), st = p.state || 'idle';
+    const d = deal(seed);
+    let grid = d.grid, score = 0, sel = [], anchor = null, popping = [], override = null;
+    if (st !== 'idle') { const m = simulate(d, 9, seed + 1); grid = m.grid; score = m.score; }
+    if (['highlight', 'focus', 'burst', 'fall'].includes(st)) {
+      const g = largest(allGroups(grid, d.colors));
+      if (st === 'burst') { popping = g.map(([r, c]) => grid[r][c]); score += g.length * (g.length - 1); }
+      else if (st === 'fall') { const g1 = remove(grid, g); override = lerpPos(posMap(g1), posMap(gravity(g1)), 0.55); score += g.length * (g.length - 1); grid = g1; }
+      else { sel = g.map(([r, c]) => grid[r][c]); anchor = g[0]; }
+    }
+    if (st === 'slide') {
+      let gr = d.grid, sc = 0, found = null; const r = rng(seed + 5);
+      for (let i = 0; i < 80 && !found; i++) {
+        const gs = allGroups(gr, d.colors); if (!gs.length) break;
+        for (const g of gs) { const g2 = gravity(remove(gr, g)); if (emptyCols(g2) > emptyCols(gr) && emptyCols(g2) < COLS) { found = g2; sc += g.length * (g.length - 1); break; } }
+        if (!found) { const g = gs[Math.floor(r() * gs.length)]; sc += g.length * (g.length - 1); gr = shiftRight(gravity(remove(gr, g))); }
+      }
+      if (found) { grid = found; score = sc; override = lerpPos(posMap(found), posMap(shiftRight(found)), 0.5); }
+    }
+    const focusCell = anchor ? [...anchor] : [ROWS - 1, 5];
+    this.state = {
+      colors: d.colors, grid, score, sel, anchor, popping, override, phase: 'idle',
+      set: p.set === 'grey' ? 'grey' : 'color', hints: p.hints === true || p.hints === 'true', sound: true,
+      view: p.view || 'game', menu: p.menu === true || p.menu === 'true', dialog: p.dialog || 'none', toast: p.toast || 'none',
+      paused: st === 'paused', elapsed: Number(p.elapsed ?? (st === 'idle' ? 0 : 134)),
+      focus: focusCell, kbd: st === 'focus', focused: st === 'focus',
+      stats: { last: 642, lastTime: 252, high: p.newHigh ? 1318 : 1318, total: 12914, played: 22 },
+      newHigh: p.newHigh === true || p.newHigh === 'true', menuIdx: Number(p.menuIdx ?? -1),
+    };
+    if (this.state.newHigh) this.state.stats = { last: 1402, lastTime: 301, high: 1402, total: 14316, played: 23 };
+  }
+  componentDidMount() {
+    if (!this.props.live) return;
+    this.tick = setInterval(() => { const s = this.state; if (s.view === 'game' && !s.menu && !s.paused && !s.over && s.dialog === 'none') this.setState({ elapsed: s.elapsed + 1 }); }, 1000);
+    this.vis = () => { if (document.hidden && this.state.view === 'game') this.setState({ paused: true }); };
+    document.addEventListener('visibilitychange', this.vis);
+  }
+  componentWillUnmount() { clearInterval(this.tick); if (this.vis) document.removeEventListener('visibilitychange', this.vis); this.timers?.forEach(clearTimeout); }
+  later(fn, ms) { (this.timers ||= []).push(setTimeout(fn, ms)); }
+  get reduced() { return this.props.reducedMotion === true || this.props.reducedMotion === 'true' || (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  clearSel() { this.setState({ sel: [], anchor: null }); }
+  newGame = () => { const d = deal(Math.floor(Math.random() * 1e9)); this.setState({ ...d, score: 0, sel: [], anchor: null, popping: [], override: null, phase: 'new', view: 'game', menu: false, paused: false, over: false, elapsed: 0 }); };
+  tap(r, c) {
+    const s = this.state;
+    if (s.phase === 'pop' || s.phase === 'fall' || s.phase === 'slide' || s.over) return;
+    if (s.override || s.popping.length) { this.setState({ override: null, popping: [], sel: [], anchor: null }); return; }
+    const id = s.grid[r]?.[c];
+    if (id == null || id < 0) return this.clearSel();
+    if (s.sel.includes(id)) return this.burst();
+    const g = groupAt(s.grid, s.colors, r, c);
+    if (g.length < 2) return this.clearSel();
+    this.setState({ sel: g.map(([a, b]) => s.grid[a][b]), anchor: [r, c], phase: 'idle' });
+  }
+  burst() {
+    const s = this.state, n = s.sel.length, red = this.reduced;
+    const cells = []; const pm = posMap(s.grid); s.sel.forEach(id => cells.push(pm[id]));
+    this.setState({ popping: s.sel, sel: [], anchor: null, score: s.score + n * (n - 1), phase: 'pop' });
+    this.later(() => {
+      const g1 = gravity(remove(this.state.grid, cells));
+      this.setState({ grid: g1, popping: [], phase: 'fall' });
+      this.later(() => {
+        const g2 = shiftRight(g1), moved = emptyCols(g1) !== emptyCols(this.state.grid) || JSON.stringify(g2) !== JSON.stringify(g1);
+        this.setState({ grid: g2, phase: moved ? 'slide' : 'idle' });
+        this.later(() => {
+          this.setState({ phase: 'idle' });
+          if (!allGroups(g2, this.state.colors).length) this.gameOver();
+        }, moved && !red ? DUR.slide : 0);
+      }, red ? 0 : DUR.fall);
+    }, red ? 0 : DUR.pop);
+  }
+  gameOver() {
+    this.setState({ over: true });
+    this.later(() => this.setState(s => { const st = { last: s.score, lastTime: s.elapsed, high: Math.max(s.stats.high, s.score), total: s.stats.total + s.score, played: s.stats.played + 1 }; return { stats: st, newHigh: s.score > s.stats.high, view: 'scoring' }; }), this.reduced ? 0 : 500);
+  }
+  onBoardClick = e => { const rect = e.currentTarget.getBoundingClientRect(); const c = Math.floor((e.clientX - rect.left) / (rect.width / COLS)); const r = Math.floor((e.clientY - rect.top) / (rect.height / ROWS)); this.setState({ kbd: false, focus: [r, c] }); this.tap(r, c); };
+  onKey = e => {
+    const [r, c] = this.state.focus; const mv = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+    if (mv) { e.preventDefault(); this.setState({ kbd: true, focus: [Math.max(0, Math.min(ROWS - 1, r + mv[0])), Math.max(0, Math.min(COLS - 1, c + mv[1]))] }); }
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); this.setState({ kbd: true }); this.tap(r, c); }
+    else if (e.key === 'Escape') { this.setState({ kbd: true, menu: false }); this.clearSel(); }
+    else if (e.key === 'n' || e.key === 'N') this.newGame();
+    else if (e.key === 'm' || e.key === 'M') this.setState(s => ({ menu: !s.menu }));
+  };
+  renderVals() {
+    const s = this.state, p = this.props;
+    const w = Number(p.w ?? 360), h = Number(p.h ?? 640), cap = Number(p.maxCell ?? 72);
+    const cell = Math.max(12, Math.min(Math.floor((w - 8) / COLS), Math.floor((h - CHROME_H) / ROWS), cap));
+    const pos = s.override || posMap(s.grid), look = LOOK[s.set], popSet = new Set(s.popping), selSet = new Set(s.sel), red = this.reduced;
+    const showGlyph = s.hints && s.set === 'color';
+    const balls = s.colors.map((col, id) => {
+      const at = pos[id], alive = !!at, popping = popSet.has(id);
+      return {
+        tf: at ? `translate(${at[1] * cell}px, ${at[0] * cell}px)` : 'translate(0,0)',
+        bg: look[col].bg, bs: look[col].bs,
+        sc: alive && !popping ? 'scale(1)' : 'scale(0.2)', op: alive && !popping ? 1 : 0,
+        glyph: showGlyph ? GLYPH[col] : '', gc: GLYPH_C[col],
+      };
+    });
+    const pm = posMap(s.grid);
+    const hl = [...s.sel, ...s.popping].filter(id => pm[id]).map(id => ({ x: pm[id][1] * cell, y: pm[id][0] * cell }));
+    const n = s.sel.length, pts = n * (n - 1);
+    const tr = red ? 'none' : s.phase === 'fall' ? `transform ${DUR.fall}ms cubic-bezier(.55,0,1,.45)` : s.phase === 'slide' ? `transform ${DUR.slide}ms cubic-bezier(.2,0,0,1)` : 'none';
+    const popTr = red ? 'opacity 80ms linear' : s.phase === 'pop' ? `transform ${DUR.pop}ms cubic-bezier(.4,0,1,1), opacity ${DUR.pop}ms linear` : 'none';
+    const anchor = s.anchor, top = anchor && anchor[0] === 0;
+    const bxRaw = anchor ? anchor[1] * cell + cell / 2 : 0;
+    const st = s.stats, avg = st.played ? Math.round(st.total / st.played) : 0;
+    const rows = [{ label: 'High Score', value: fmt(st.high) }, { label: 'Average Score', value: fmt(avg) }, { label: 'Total Score', value: fmt(st.total) }, { label: 'Games Played', value: fmt(st.played) }];
+    const go = v => () => this.setState({ view: v, menu: false });
+    const items = [['New Game', this.newGame], ['Statistics', go('stats')], ['Options', go('options')], ['How to Play', go('howto')], ['About', go('about')]];
+    const isGame = s.view === 'game';
+    return {
+      isGame, isScoring: s.view === 'scoring', isStats: s.view === 'stats', isOptions: s.view === 'options', isHowto: s.view === 'howto', isAbout: s.view === 'about',
+      cell, bw: cell * COLS, bh: cell * ROWS, balls, hl, hlColor: s.set === 'grey' ? '#8C8C8C' : '#7486C4', tr, popTr, glyphSize: Math.round(cell * 0.36),
+      scoreText: fmt(s.score), selText: n ? fmt(pts) : '–',
+      timeText: (s.paused || s.menu) && isGame ? `‖ ${clock(s.elapsed)}` : clock(s.elapsed),
+      hasBubble: !!anchor && n > 1, pts: `${pts} ${pts === 1 ? 'point' : 'points'}`,
+      bx: Math.max(34, Math.min(cell * COLS - 34, bxRaw)), by: anchor ? (top ? (anchor[0] + 1) * cell + 2 : anchor[0] * cell - 2) : 0,
+      bubbleTf: top ? 'translate(-50%, 0)' : 'translate(-50%, -100%)',
+      showFocus: s.kbd && s.focused, fx: s.focus[1] * cell, fy: s.focus[0] * cell,
+      onBoardClick: this.onBoardClick, onKey: this.onKey,
+      onFocus: () => this.setState({ focused: true }), onBlur: () => this.setState({ focused: false }),
+      live: n ? `${n} ${NAMES[s.set][s.colors[s.sel[0]]]} balls selected, ${pts} points. Press Enter again to burst.` : '',
+      paused: s.paused && isGame, resume: () => this.setState({ paused: false }),
+      toastUpdate: s.toast === 'update' && isGame, toastOffline: s.toast === 'offline' && isGame, toastInstall: s.toast === 'install' && isGame,
+      closeToast: () => this.setState({ toast: 'none' }),
+      lastScore: fmt(st.last), lastTime: clock(st.lastTime), isNewHigh: s.newHigh, statRows: rows,
+      statRowsFull: [{ label: 'Last Game', value: fmt(st.last) }, ...rows],
+      newGame: this.newGame, askReset: () => this.setState({ dialog: 'reset' }),
+      dialogReset: s.dialog === 'reset', cancelReset: () => this.setState({ dialog: 'none' }),
+      doReset: () => this.setState({ dialog: 'none', stats: { last: 0, lastTime: 0, high: 0, total: 0, played: 0 } }),
+      isColor: s.set === 'color', isGrey: s.set === 'grey', setColor: () => this.setState({ set: 'color' }), setGrey: () => this.setState({ set: 'grey' }),
+      prevColor: LOOK.color, prevGrey: LOOK.grey, aboutBalls: [LOOK.color[0], LOOK.color[1], LOOK.color[2], LOOK.color[4]],
+      hints: s.hints, hintsMark: s.hints ? '✓' : '', hintsOpacity: s.set === 'grey' ? 0.5 : 1, toggleHints: () => s.set === 'color' && this.setState({ hints: !s.hints }),
+      sound: s.sound, soundMark: s.sound ? '✓' : '', toggleSound: () => this.setState({ sound: !s.sound }),
+      leftKey: isGame ? 'New Game' : 'Done',
+      leftAction: isGame ? this.newGame : () => this.setState({ view: 'game', menu: false }),
+      menuOpen: s.menu, menuClosed: !s.menu, toggleMenu: () => this.setState({ menu: !s.menu }),
+      menuItems: items.map(([label, fn], i) => ({ label, onClick: fn, sepBefore: i === 1, bg: i === s.menuIdx ? '#0A246A' : '#fff', fg: i === s.menuIdx ? '#fff' : '#000' })),
+    };
+  }
+}
+</script>
+</body>
+</html>
