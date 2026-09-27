@@ -78,8 +78,6 @@ interface Game {
   readonly colors: readonly Color[];       // indexed by BallId, never changes
   readonly board: Board;
   readonly score: number;
-  readonly moves: number;
-  readonly largestBurst: number;
 }
 
 interface MoveResult {                     // everything the UI needs to animate one burst
@@ -107,6 +105,7 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 
 **GameStore**
 - State signals:
+  - `gameId`: `crypto.randomUUID()` per new game; used for exactly-once stats.
   - `game`: engine `Game`.
   - `selection`: cells + anchor, or null.
   - `phase`: `'idle' | 'pop' | 'fall' | 'slide' | 'over'`.
@@ -141,9 +140,10 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 |---|---|---|
 | `bb:v1:settings` | `{ breakerSet, shapeHints, sound }` | on change |
 | `bb:v1:stats` | `{ high, total, played, last, lastRecordedGameId }` | on game over |
-| `bb:v1:game` | `{ id, seed, colors, cells, score, moves, largestBurst, elapsedMs }` | after each burst, on pause/hidden, before SW reload; cleared at game over |
+| `bb:v1:game` | `{ gameId, seed, colors, cells, score, elapsedMs }` | after each burst, on pause/hidden, before SW reload; cleared at game over |
 
 - On start, a valid `bb:v1:game` is restored in the Paused state; otherwise a new game starts.
+- Test hook: when `environment.testHooks` is true (dev and e2e builds only), `?seed=<uint32>` starts a new game with that seed. Production ignores it (see 04).
 - Saves happen after the animation settles, from the final `Game`.
 
 ## UI

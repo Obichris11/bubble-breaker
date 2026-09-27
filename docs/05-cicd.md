@@ -16,7 +16,7 @@ Inputs: [04-quality.md](04-quality.md) (gates), [06-deployment.md](06-deployment
 ### Ruleset on `main`
 
 - Pull request required (0 approvals: solo developer; PR = CI gate + changelog entry).
-- Required status checks: `quality`, `build`, `e2e`, `lighthouse`, `pr-title`, `CodeQL`.
+- Required status checks: `quality`, `build`, `e2e`, `lighthouse`, `docker`, `pr-title`, `CodeQL`.
 - Branch must be up to date before merge; linear history; no force push; no deletion.
 - Repo admin may bypass only in emergencies (logged).
 
