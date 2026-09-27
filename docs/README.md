@@ -31,3 +31,8 @@ Ground-up rewrite of Bubble Breaker, planned in theory before any code. Each pha
 - Links are standard Markdown relative links so they work on GitHub and in Obsidian (set *Files & Links → New link format* to *Relative path to file* and turn off *Use [[Wikilinks]]* to keep new links GitHub-compatible).
 - Every note has `aliases`, `tags` (`bubble-breaker/*`) and `status` properties for search, graph and Bases/Dataview queries.
 - Diagrams are Mermaid, and callouts use `> [!NOTE]`-style syntax; both render in Obsidian and on GitHub.
+- The iCloud vault `ChrisVault/Bubble Breaker/` holds a one-way copy (repo = source of truth). Refresh it after doc changes:
+
+```bash
+rsync -a --exclude '.DS_Store' ~/Projects/claude_kot/bubble-breaker/docs/ ~/Library/Mobile\ Documents/iCloud~md~obsidian/Documents/ChrisVault/Bubble\ Breaker/
+```
