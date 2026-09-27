@@ -1,6 +1,13 @@
+---
+aliases:
+  - ADR-0001
+  - Angular 22, zoneless, signals
+tags:
+  - bubble-breaker/adr
+status: accepted
+created: 2026-09-27
+---
 # ADR-0001: Angular 22, zoneless, signals
-
-Status: Accepted · 2026-09-27
 
 ## Context
 Rewrite needs a modern, portfolio-grade frontend. User chose to stay on Angular.

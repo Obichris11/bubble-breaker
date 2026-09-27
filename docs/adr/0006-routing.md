@@ -1,6 +1,13 @@
+---
+aliases:
+  - ADR-0006
+  - Angular Router for screens, overlays for menu/dialogs
+tags:
+  - bubble-breaker/adr
+status: accepted
+created: 2026-09-27
+---
 # ADR-0006: Angular Router for screens, overlays for menu/dialogs
-
-Status: Accepted · 2026-09-27
 
 ## Context
 Screens: game, scoring, statistics, options, how-to-play, about. Android back gesture and browser back must behave.

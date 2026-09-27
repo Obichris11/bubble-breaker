@@ -1,3 +1,14 @@
+---
+aliases:
+  - Quality Strategy
+tags:
+  - bubble-breaker/planning
+  - bubble-breaker/phase-4
+  - bubble-breaker/quality
+  - bubble-breaker/testing
+status: accepted
+created: 2026-09-27
+---
 # 04 — Quality Strategy
 
 Goal: every rule in [01-rules.md](01-rules.md) and every "must not get wrong" item in [02-ux.md](02-ux.md) is guarded by an automated check. Checks run locally (pre-commit) and in CI (required for merge).
@@ -56,7 +67,8 @@ Test seed hook: the app reads `?seed=<uint32>` **only** when `environment.testHo
 | Lighthouse (mobile, simulated throttling) | Performance ≥ 90, Accessibility = 100, Best Practices ≥ 95, SEO ≥ 90 | CI on PR |
 | Visual regression | ≤ 0.1 % pixel diff | CI |
 
-Note: Lighthouse removed its PWA category in v12; installability is asserted in E2E instead (manifest fields, 192/512 + maskable icons, SW controls page, offline reload).
+> [!NOTE]
+> Lighthouse removed its PWA category in v12; installability is asserted in E2E instead (manifest fields, 192/512 + maskable icons, SW controls page, offline reload).
 
 ## Local workflow
 

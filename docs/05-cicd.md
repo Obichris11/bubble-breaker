@@ -1,3 +1,14 @@
+---
+aliases:
+  - CI/CD & Repo Governance
+tags:
+  - bubble-breaker/planning
+  - bubble-breaker/phase-5
+  - bubble-breaker/ci-cd
+  - bubble-breaker/github
+status: accepted
+created: 2026-09-27
+---
 # 05 — CI/CD & Repo Governance
 
 Inputs: [04-quality.md](04-quality.md) (gates), [06-deployment.md](06-deployment.md) (consumer of the image).
@@ -69,7 +80,8 @@ All workflows follow these rules:
    5. Trivy scans the pushed image. It fails on fixable `CRITICAL`/`HIGH` and uploads SARIF to code scanning.
 3. The NAS picks up `:latest` (see 06).
 
-**Token caveat:** PRs opened with `GITHUB_TOKEN` do not trigger other workflows. The release PR would therefore never get its required checks.
+> [!WARNING]
+> **Token caveat:** PRs opened with `GITHUB_TOKEN` do not trigger other workflows. The release PR would therefore never get its required checks.
 - Use a **fine-grained PAT** stored as secret `RELEASE_PLEASE_TOKEN`: scoped to this repo, with `contents` and `pull-requests` read/write, 1-year expiry and a calendar reminder.
 - Alternative: a small GitHub App (more setup, no expiry).
 
@@ -102,9 +114,14 @@ No other secrets are needed: the GHCR package is public, so the NAS pulls anonym
 
 ## Flow summary
 
-```
-feature branch ──PR──▶ ci.yml + codeql + pr-title (required) ──squash──▶ main
-main ──push──▶ release.yml: release-please updates "release X.Y.Z" PR
-merge release PR ──▶ tag vX.Y.Z ──▶ image build → GHCR (X.Y.Z, X.Y, latest, sha) → Trivy
-NAS (06) ──polls──▶ ghcr.io/obichris11/bubble-breaker:latest ──▶ redeploy
+```mermaid
+flowchart LR
+  fb[feature branch] -->|"PR"| checks{"ci.yml · codeql · pr-title<br/>(required)"}
+  checks -->|"squash"| main[main]
+  main -->|"push"| rp["release.yml<br/>release-please updates<br/>release X.Y.Z PR"]
+  rp -->|"merge release PR"| tag[tag vX.Y.Z]
+  tag --> img["image build → GHCR<br/>X.Y.Z · X.Y · latest · sha"]
+  img --> trivy[Trivy scan]
+  nas["NAS updater (06)"] -->|"polls :latest"| img
+  nas --> live[redeploy]
 ```

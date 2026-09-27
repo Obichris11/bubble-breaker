@@ -1,6 +1,13 @@
+---
+aliases:
+  - ADR-0007
+  - Angular service worker for PWA
+tags:
+  - bubble-breaker/adr
+status: accepted
+created: 2026-09-27
+---
 # ADR-0007: Angular service worker for PWA
-
-Status: Accepted · 2026-09-27
 
 ## Context
 Must be installable and fully offline; must tell users about updates without silently reloading.

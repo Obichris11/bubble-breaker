@@ -1,6 +1,13 @@
+---
+aliases:
+  - ADR-0003
+  - DOM + CSS rendering
+tags:
+  - bubble-breaker/adr
+status: accepted
+created: 2026-09-27
+---
 # ADR-0003: DOM + CSS rendering
-
-Status: Accepted · 2026-09-27
 
 ## Context
 Board is 11×12 = 132 balls. Need animations, accessibility, testability.

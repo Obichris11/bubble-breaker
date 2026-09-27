@@ -1,6 +1,15 @@
+---
+aliases:
+  - Rewrite Design Spec
+  - Bubble Breaker Spec
+tags:
+  - bubble-breaker/spec
+  - bubble-breaker/planning
+status: in-review
+created: 2026-09-27
+branch: rewrite
+---
 # Bubble Breaker Rewrite — Design Spec
-
-Date: 2026-09-27 · Status: awaiting user review · Branch: `rewrite`
 
 This spec consolidates the phase documents. The phase docs remain the detailed source; this file is the single entry point, the scope contract, and the traceability record.
 
@@ -8,8 +17,8 @@ This spec consolidates the phase documents. The phase docs remain the detailed s
 |---|---|---|
 | 00 | [00-legacy-inventory.md](../../00-legacy-inventory.md) | What existed, what was broken, salvage list |
 | 01 | [01-rules.md](../../01-rules.md) | Game rules R1–R21, engine defaults, invariants |
-| 02 | [02-ux.md](../../02-ux.md) + [design/](../../design/) | Screens, layout math, interaction, motion, a11y, tokens |
-| 03 | [03-architecture.md](../../03-architecture.md) + [adr/](../../adr/) | Layers, engine API, stores, persistence, routing, ports |
+| 02 | [02-ux.md](../../02-ux.md) + [design/](../../design/README.md) | Screens, layout math, interaction, motion, a11y, tokens |
+| 03 | [03-architecture.md](../../03-architecture.md) + [adr/](../../adr/README.md) | Layers, engine API, stores, persistence, routing, ports |
 | 04 | [04-quality.md](../../04-quality.md) | Toolchain, test pyramid, gates, Definition of Done |
 | 05 | [05-cicd.md](../../05-cicd.md) | Repo governance, workflows, versioning, release |
 | 06 | [06-deployment.md](../../06-deployment.md) | Image, nginx, Synology runtime, updater, rollback |
@@ -99,6 +108,9 @@ Rebuild Bubble Breaker from scratch as:
 | R5 determinism | Property "same seed + moves ⇒ same game"; e2e `?seed=` |
 
 ## Prerequisites before implementation
+
+> [!IMPORTANT]
+> Complete these before the first line of code.
 
 1. Upgrade local **Node to ≥ 24.15** (Angular 22 requirement; machine has 24.3).
 2. Upgrade local **git** (2.15 → current; needed for Husky, `git switch/restore`).

@@ -1,6 +1,16 @@
+---
+aliases:
+  - Architecture
+tags:
+  - bubble-breaker/planning
+  - bubble-breaker/phase-3
+  - bubble-breaker/architecture
+status: accepted
+created: 2026-09-27
+---
 # 03 — Architecture
 
-Inputs: [01-rules.md](01-rules.md), [02-ux.md](02-ux.md). Decisions with trade-offs are recorded as ADRs in [`adr/`](adr/).
+Inputs: [01-rules.md](01-rules.md), [02-ux.md](02-ux.md). Decisions with trade-offs are recorded as ADRs in [`adr/`](adr/README.md).
 
 ## Platform baseline
 
@@ -16,19 +26,15 @@ Inputs: [01-rules.md](01-rules.md), [02-ux.md](02-ux.md). Decisions with trade-o
 
 ## Layers
 
-```
-┌────────────────────────── ui ──────────────────────────┐
-│ screens/  chrome/  board/        (components, OnPush)  │
-└───────────────▲────────────────────────────────────────┘
-                │ reads signals, calls intents
-┌───────────────┴──────── state ─────────────────────────┐
-│ GameStore  StatsStore  SettingsStore  PhaseRunner      │
-└───────▲──────────────────────────────▲─────────────────┘
-        │ pure calls                   │ injected ports
-┌───────┴──── engine ─────┐   ┌────────┴──── platform ────────────┐
-│ pure TS, no Angular     │   │ Storage  Clock  Audio  Visibility │
-│ rules, rng, board, move │   │ SwUpdate/Install                  │
-└─────────────────────────┘   └───────────────────────────────────┘
+```mermaid
+flowchart TB
+  ui["<b>ui</b><br/>screens · chrome · board<br/>(components, OnPush)"]
+  state["<b>state</b><br/>GameStore · StatsStore · SettingsStore · PhaseRunner"]
+  engine["<b>engine</b><br/>pure TS, no Angular<br/>rules · rng · board · move"]
+  platform["<b>platform</b><br/>Storage · Clock · Audio · Visibility · Pwa"]
+  ui -->|"reads signals, calls intents"| state
+  state -->|"pure calls"| engine
+  state -->|"injected ports"| platform
 ```
 
 **Dependency rule** (lint-enforced, [ADR-0002](adr/0002-layered-architecture.md)):
@@ -39,7 +45,7 @@ Inputs: [01-rules.md](01-rules.md), [02-ux.md](02-ux.md). Decisions with trade-o
 
 ## Folder layout
 
-```
+```text
 src/
   main.ts
   styles/            tokens.css (verbatim from design), base.css, fonts (self-hosted Noto Sans)

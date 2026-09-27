@@ -1,6 +1,13 @@
+---
+aliases:
+  - ADR-0005
+  - Versioned localStorage schema with guards
+tags:
+  - bubble-breaker/adr
+status: accepted
+created: 2026-09-27
+---
 # ADR-0005: Versioned localStorage schema with guards
-
-Status: Accepted · 2026-09-27
 
 ## Context
 Game in progress, stats and settings must survive reloads and app updates; corrupted or old data must never crash the game.

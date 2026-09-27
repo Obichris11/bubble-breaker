@@ -1,6 +1,13 @@
+---
+aliases:
+  - ADR-0002
+  - "Layered architecture: engine / state / platform / ui"
+tags:
+  - bubble-breaker/adr
+status: accepted
+created: 2026-09-27
+---
 # ADR-0002: Layered architecture: engine / state / platform / ui
-
-Status: Accepted · 2026-09-27
 
 ## Context
 Legacy mixed rules, DOM and state in services; tests could not reach the real logic.

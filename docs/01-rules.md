@@ -1,3 +1,13 @@
+---
+aliases:
+  - Ruleset
+tags:
+  - bubble-breaker/planning
+  - bubble-breaker/phase-1
+  - bubble-breaker/rules
+status: accepted
+created: 2026-09-27
+---
 # 01 — Ruleset
 
 Rules for v1 (Standard style only).

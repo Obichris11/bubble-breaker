@@ -1,6 +1,13 @@
+---
+aliases:
+  - ADR-0008
+  - English only, centralized strings
+tags:
+  - bubble-breaker/adr
+status: accepted
+created: 2026-09-27
+---
 # ADR-0008: English only, centralized strings
-
-Status: Accepted · 2026-09-27
 
 ## Context
 Original was English. User wants English only for v1 but may add languages later.

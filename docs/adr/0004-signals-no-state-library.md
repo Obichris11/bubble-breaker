@@ -1,6 +1,13 @@
+---
+aliases:
+  - ADR-0004
+  - Signal stores, no state library
+tags:
+  - bubble-breaker/adr
+status: accepted
+created: 2026-09-27
+---
 # ADR-0004: Signal stores, no state library
-
-Status: Accepted · 2026-09-27
 
 ## Context
 State is small: one game, stats, settings. Legacy had RxJS subjects with manual subscriptions.

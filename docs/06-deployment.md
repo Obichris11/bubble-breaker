@@ -1,3 +1,14 @@
+---
+aliases:
+  - Deployment & Operations
+tags:
+  - bubble-breaker/planning
+  - bubble-breaker/phase-6
+  - bubble-breaker/deployment
+  - bubble-breaker/synology
+status: accepted
+created: 2026-09-27
+---
 # 06 — Deployment & Operations
 
 Target: Synology DS224+ (x86-64), DSM 7.2+, Container Manager. Public internet on the user's own domain via the existing DSM reverse proxy. Image source: `ghcr.io/obichris11/bubble-breaker` (public, built by [05-cicd.md](05-cicd.md)).
@@ -6,13 +17,14 @@ The server is stateless: all player data lives in the browser (localStorage). No
 
 ## Topology
 
-```
-Browser ──HTTPS 443──▶ Router ──▶ DSM reverse proxy (Let's Encrypt, HSTS, HTTP/2)
-                                     │ http://127.0.0.1:18080
-                                     ▼
-                         container bubble-breaker (nginx-unprivileged :8080, read-only)
-                                     ▲
-DSM Task Scheduler (every 15 min) ── update.sh ── docker compose pull / up -d ◀── GHCR :latest
+```mermaid
+flowchart LR
+  browser[Browser] -->|"HTTPS 443"| router[Router]
+  router --> proxy["DSM reverse proxy<br/>Let's Encrypt · HSTS · HTTP/2"]
+  proxy -->|"http://127.0.0.1:18080"| app["container bubble-breaker<br/>nginx-unprivileged :8080, read-only"]
+  task["DSM Task Scheduler<br/>every 15 min"] --> upd[update.sh]
+  upd -->|"docker compose pull / up -d"| app
+  ghcr[(GHCR :latest)] --> upd
 ```
 
 ## Image (`Dockerfile`, multi-stage)

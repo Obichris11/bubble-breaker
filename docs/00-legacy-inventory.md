@@ -1,3 +1,13 @@
+---
+aliases:
+  - Legacy Inventory
+tags:
+  - bubble-breaker/planning
+  - bubble-breaker/phase-0
+  - bubble-breaker/legacy
+status: accepted
+created: 2026-09-27
+---
 # 00 — Legacy Inventory
 
 Snapshot of the pre-rewrite implementation, preserved as git tag `v0-legacy` (commit `f16fc4d`).
