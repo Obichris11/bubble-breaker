@@ -65,6 +65,8 @@ export default defineConfig(
   },
   {
     files: ['src/app/ui/**/*.ts'],
+    // Specs build scenarios with engine fixtures and bind the platform fakes for TestBed.
+    ignores: ['src/app/ui/**/*.spec.ts'],
     rules: {
       '@typescript-eslint/no-restricted-imports': [
         'error',
