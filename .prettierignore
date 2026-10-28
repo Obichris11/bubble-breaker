@@ -3,3 +3,4 @@ coverage/
 .angular/
 docs/
 package-lock.json
+src/styles/tokens.css
