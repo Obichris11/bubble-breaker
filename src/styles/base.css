@@ -1,0 +1,34 @@
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/noto-sans-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Noto Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/noto-sans-latin-700-normal.woff2') format('woff2');
+}
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  font-family: var(--bb-font);
+  font-size: var(--bb-fs-m);
+  color: var(--bb-text);
+  background: var(--bb-face);
+  -webkit-text-size-adjust: 100%;
+}
+@media (pointer: fine) {
+  body {
+    background: var(--bb-desktop);
+  }
+}

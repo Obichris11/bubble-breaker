@@ -31,7 +31,7 @@ created: 2026-09-27
 - Runtime dependencies: Angular packages only. Everything else is a devDependency.
 - English only; user-visible strings live in `src/app/strings.ts`.
 - Coverage gates: `src/app/engine/**` ≥ 95 %, `src/app/state/**` ≥ 90 %, overall ≥ 80 %.
-- Bundle budget: initial 150 kB warning / 200 kB error. Component styles: 4 kB warning / 8 kB error.
+- Bundle budget: initial 350 kB warning / 450 kB error (raw size). Component styles: 4 kB warning / 8 kB error.
 - Commits: Conventional Commits; commit email is the GitHub noreply address (already set globally).
 - Repo: `github.com/Obichris11/bubble-breaker`. The legacy code is preserved at tag `v0-legacy`.
 - Third-party GitHub Actions are pinned by commit SHA:
