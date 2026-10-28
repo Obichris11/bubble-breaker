@@ -41,7 +41,7 @@ flowchart TB
 - `engine` imports nothing outside itself; no `@angular/*`, no DOM.
 - `platform` imports nothing from `state`/`ui`.
 - `state` imports `engine` + `platform` interfaces.
-- `ui` imports `state` (+ `engine` types only).
+- `ui` imports `state` (+ `engine` types only). ui specs may also use engine fixtures and the platform fakes.
 
 ## Folder layout
 
@@ -58,7 +58,7 @@ src/
     platform/        clock.ts storage.ts audio.ts visibility.ts reduced-motion.ts provide-platform.ts (pwa.ts in Plan 06) + testing/fakes.ts
     ui/
       chrome/        title-bar status-strip softkey-bar popup-menu dialog toast
-      board/         board board-layout (cell math) points-bubble live-region
+      board/         board-area board board-layout (cell math) ball-look announcer points-bubble live-region
       screens/       game scoring statistics options how-to-play about
 ```
 
@@ -135,13 +135,13 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
   - `cursor`: keyboard cursor.
   - `covered`: a menu, screen or dialog is open; stops the timer.
   - `showScoring`: the game-over hold is over, so the UI navigates to Scoring.
-- Derived (`computed`): `selectedPoints`, `selectedText`, `scoreText`, `timeText`, `canInteract`.
+- Derived (`computed`): `selectedPoints`, `selectedText`, `scoreText`, `timeText`, `canInteract`, `cursorGroup` (the group under the cursor, `[]` on an empty cell or a lone ball).
 - Intents:
   - `tap(cell)` implements the selection rules R8/R9.
   - `newGame(seed?)`, `pause()`, `resume()`, `setCovered(covered)`, `save()`.
   - Keyboard helpers: `moveCursor`, `activateCursor`, `clearSelection`.
 - **PhaseRunner** plays the frames built by `framesFor(before, result, motion)`: pop on the old board, fall to `afterGravity`, slide to `afterCollapse` (skipped when `afterCollapse === afterGravity`), then an `over` hold on game over. It uses the durations from `state/motion.ts` (which mirrors `tokens.css`) and the injected clock. With reduced motion the pop keeps an 80 ms fade and every other duration is 0; zero-length frames apply synchronously. Tests use `FakeClock`.
-- At the `over` frame the store stops the timer, records statistics, clears `bb:v1:game` and plays the game-over sound; `showScoring` turns true after the hold.
+- At the `over` frame the store clears `paused` (a pause during the final burst must not reach Scoring), stops the timer, records statistics, clears `bb:v1:game` and plays the game-over sound; `showScoring` turns true after the hold.
 
 **StatsStore**
 - Holds `high`, `total`, `played`, `last { score, timeMs }`, with `average` computed.
@@ -183,17 +183,19 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 - The menu, dialogs and toasts are overlays, not routes.
 - Scoring is reached only through game over; a direct visit redirects to `''`.
 
-**Board**
-- `board-layout.ts` holds the pure cell-size function from the handoff §1; it is unit-tested with the 4 reference viewports.
-- A ResizeObserver on the board area feeds a `cell` signal.
-- Stacking order: highlight layer (z1) → balls (`@for (ball of balls(); track ball.id)`, z2) → focus ring (z3) → points bubble (z4).
-- One pointer handler maps x/y to a cell. A keydown handler drives the cursor.
-- The live region is a sibling element announcing the texts from `strings.ts`.
+**Board** (`ui/board/`)
+- `board-layout.ts` holds the pure layout functions from the handoff §1–2: `cellSize` (unit-tested with the reference viewports), `cellAt` (hit testing), `bubblePlacement` and `translate`.
+- `BoardArea` (`bb-board-area`) is the white flex area. A ResizeObserver on its content box (CSS padding `0 4px 4px`) feeds the `cell` input; `cell_max` is read from the `--bb-cell-max` token. A tap on the area beside the board counts as outside (clears the selection). Until Plan 05 the area fills everything below the title bar (352×610 at 360×640, still cell 32).
+- `GameBoard` (`bb-board`) is one focusable `role="application"` element. Stacking order: highlight layer (z1) → balls (`@for (ball of balls(); track ball.id)` in id order, z2) → focus ring (z3) → points bubble (z4).
+- One `click` handler maps x/y to a cell and calls `GameStore.tap`. A keydown handler drives the cursor: arrows, Enter/Space, Esc, N (M arrives with the menu in Plan 05).
+- The focus ring shows while the board has focus and the last input was a key or keyboard focus; a pointer press hides it. Pointer taps do not move the cursor.
+- Animations are CSS transitions switched by phase classes (`board--fall`, `board--slide`, `cell--popping`) with the motion tokens; the PhaseRunner decides when each phase starts. Popped balls leave the DOM at the fall frame.
+- The live region (`bb-live-region`, polite) is a sibling of the board. `announcer.ts` picks one message per input from a before/after snapshot of the store; game over is announced when `phase` becomes `over`. All texts live in `strings.ts`.
 
 **Ball**
-- A plain element with CSS classes from `tokens.css` (`.bb-ball--red`, `.bb-ball--g1`, and so on).
-- The shape-hint glyph is a child element.
-- The idle look never changes.
+- A `.cell` wrapper moved by `transform`, holding a `.bb-ball` element with the tokens.css recipe class (`.bb-ball--red`, `.bb-ball--g1`, and so on).
+- The shape-hint glyph is an `aria-hidden` child span, shown only on Colorful when shape hints are on.
+- The idle look never changes; highlight and focus ring are separate elements behind and above it.
 
 **Chrome**
 - Title bar, status strip, softkey bar, popup menu (roving focus, Home/End/Esc), dialog (native `<dialog>` with `showModal()` for the focus trap and Esc), toast.

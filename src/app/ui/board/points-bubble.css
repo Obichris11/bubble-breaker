@@ -1,0 +1,22 @@
+:host {
+  position: absolute;
+  z-index: var(--bb-z-bubble);
+  transform: translate(-50%, -100%);
+  padding: 1px 6px;
+  border: 1px solid var(--bb-text);
+  background: var(--bb-tip);
+  box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.35);
+  color: var(--bb-text);
+  font: 700 var(--bb-fs-s) / 1.4 var(--bb-font);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: bb-bubble-in var(--bb-dur-bubble) var(--bb-ease-bubble);
+}
+:host(.below) {
+  transform: translate(-50%, 0);
+}
+@keyframes bb-bubble-in {
+  from {
+    opacity: 0;
+  }
+}
