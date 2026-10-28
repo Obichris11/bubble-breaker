@@ -65,7 +65,7 @@ Rebuild Bubble Breaker from scratch as:
 | PWA | Angular service worker, asset groups only | ADR-0007 |
 | Copy | English, `strings.ts` | ADR-0008 |
 | Tests | Vitest (only runner) + fast-check + Testing Library + Playwright + axe + visual snapshots | 04 |
-| Gates | Coverage engine 95 / state 90 / overall 80; LH Perf ≥ 90, A11y 100; bundle ≤ 450 kB raw | 04 |
+| Gates | Coverage engine 95 / state 90 / ui 80 / overall 80; LH Perf ≥ 90, A11y 100; bundle ≤ 450 kB raw | 04 |
 | Repo | Public, `main`, squash merges, ruleset with required checks | 05 |
 | Release | release-please PR → tag → GHCR `X.Y.Z / X.Y / latest / sha` → Trivy | 05 |
 | Runtime | `nginx-unprivileged`, read-only, localhost-bound, behind DSM reverse proxy | 06 |

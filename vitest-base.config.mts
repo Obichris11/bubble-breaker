@@ -23,6 +23,7 @@ export default defineConfig({
         branches: 80,
         'src/app/engine/**': { lines: 95, statements: 95, functions: 95, branches: 95 },
         'src/app/state/**': { lines: 90, statements: 90, functions: 90, branches: 90 },
+        'src/app/ui/**': { lines: 80, statements: 80, functions: 80, branches: 80 },
       },
     },
   },
