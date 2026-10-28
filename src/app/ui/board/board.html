@@ -1,4 +1,5 @@
 <div
+  #board
   class="board"
   role="application"
   tabindex="0"
@@ -9,6 +10,11 @@
   [style.width.px]="width()"
   [style.height.px]="height()"
   [style.--bb-cell]="cell() + 'px'"
+  (pointerdown)="onPointerDown()"
+  (click)="onClick($event)"
+  (keydown)="onKeydown($event)"
+  (focus)="onFocus()"
+  (blur)="onBlur()"
 >
   @for (spot of highlight(); track spot.key) {
     <div class="spot" [style.transform]="spot.transform"></div>
@@ -27,7 +33,11 @@
       </div>
     </div>
   }
+  @if (ring(); as transform) {
+    <div class="ring" data-testid="focus-ring" [style.transform]="transform"></div>
+  }
   @if (bubble(); as bubble) {
     <bb-points-bubble [text]="bubble.text" [x]="bubble.x" [y]="bubble.y" [below]="bubble.below" />
   }
 </div>
+<bb-live-region [message]="message()" />

@@ -1,11 +1,24 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import type { BallId } from '../../engine';
 import { formatNumber } from '../../state/format';
-import { GameStore } from '../../state/game.store';
+import { GameStore, type Direction } from '../../state/game.store';
 import { SettingsStore } from '../../state/settings.store';
 import { STRINGS } from '../../strings';
+import { announcement, gameOverText, type BoardSnapshot } from './announcer';
 import { ballLook, shapeHint } from './ball-look';
-import { bubblePlacement, translate } from './board-layout';
+import { bubblePlacement, cellAt, translate } from './board-layout';
+import { LiveRegion } from './live-region';
 import { PointsBubble } from './points-bubble';
 
 interface BallView {
@@ -21,13 +34,21 @@ interface Spot {
   readonly transform: string;
 }
 
+const DIRECTIONS: Partial<Record<string, Direction>> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+};
+
 /**
  * The 11 × 12 board (02-ux, ADR-0003): highlight layer, balls keyed by id and moved with
- * `transform`, and the points bubble.
+ * `transform`, keyboard focus ring and points bubble, plus the live region beside it.
+ * Pointer and keyboard input both go through `GameStore` intents.
  */
 @Component({
   selector: 'bb-board',
-  imports: [PointsBubble],
+  imports: [LiveRegion, PointsBubble],
   templateUrl: './board.html',
   styleUrl: './board.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,7 +59,16 @@ export class GameBoard {
 
   protected readonly store = inject(GameStore);
   private readonly settings = inject(SettingsStore);
+  private readonly boardRef = viewChild.required<ElementRef<HTMLElement>>('board');
   protected readonly strings = STRINGS;
+
+  /** Last live-region announcement. */
+  protected readonly message = signal('');
+  private readonly focused = signal(false);
+  /** The last input was a key: the focus ring shows only for keyboard use. */
+  private readonly keyboard = signal(false);
+  /** A pointer press is about to focus the board; that focus must not show the ring. */
+  private pointerFocus = false;
 
   protected readonly width = computed(() => this.cell() * this.store.game().board.columns);
   protected readonly height = computed(() => this.cell() * this.store.game().board.rows);
@@ -92,4 +122,99 @@ export class GameBoard {
       ...bubblePlacement(selection.anchor, this.cell(), this.store.game().board),
     };
   });
+
+  /** `transform` of the focus ring, or null while it is hidden. */
+  protected readonly ring = computed(() =>
+    this.focused() && this.keyboard() ? translate(this.store.cursor(), this.cell()) : null,
+  );
+
+  constructor() {
+    effect(() => {
+      if (this.store.phase() === 'over') {
+        const score = untracked(() => this.store.game().score);
+        this.message.set(gameOverText(score));
+      }
+    });
+  }
+
+  protected onPointerDown(): void {
+    this.keyboard.set(false);
+    this.pointerFocus = true;
+  }
+
+  protected onClick(event: MouseEvent): void {
+    this.pointerFocus = false;
+    const box = this.boardRef().nativeElement.getBoundingClientRect();
+    const cell = cellAt(event.clientX - box.left, event.clientY - box.top, this.cell());
+    this.act(() => {
+      this.store.tap(cell);
+    });
+  }
+
+  protected onKeydown(event: KeyboardEvent): void {
+    if (event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+    this.keyboard.set(true);
+    const direction = DIRECTIONS[event.key];
+    if (direction !== undefined) {
+      event.preventDefault();
+      this.act(() => {
+        this.store.moveCursor(direction);
+      });
+      return;
+    }
+    switch (event.key) {
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        this.act(() => {
+          this.store.activateCursor();
+        });
+        return;
+      case 'Escape':
+        this.act(() => {
+          this.store.clearSelection();
+        });
+        return;
+      case 'n':
+      case 'N':
+        this.act(() => {
+          this.store.newGame();
+        });
+        return;
+    }
+  }
+
+  protected onFocus(): void {
+    this.focused.set(true);
+    if (!this.pointerFocus) {
+      this.keyboard.set(true);
+    }
+    this.pointerFocus = false;
+  }
+
+  protected onBlur(): void {
+    this.focused.set(false);
+  }
+
+  /** Runs an input intent and announces what it changed. */
+  private act(intent: () => void): void {
+    const before = this.snapshot();
+    intent();
+    const text = announcement(before, this.snapshot(), this.settings.breakerSet());
+    if (text !== null) {
+      this.message.set(text);
+    }
+  }
+
+  private snapshot(): BoardSnapshot {
+    return {
+      gameId: this.store.gameId(),
+      game: this.store.game(),
+      selection: this.store.selection(),
+      cursor: this.store.cursor(),
+      cursorGroupSize: this.store.cursorGroup().length,
+    };
+  }
 }

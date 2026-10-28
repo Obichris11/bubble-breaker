@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { render, screen } from '@testing-library/angular';
+import { fireEvent, render, screen } from '@testing-library/angular';
 import { createFakePlatform, type FakePlatform } from '../../platform/testing/fakes';
 import { GameStore } from '../../state/game.store';
 import { KEYS, type GameRecord } from '../../state/persistence';
@@ -11,6 +11,8 @@ const CELL = 32;
 // Ball ids are cell indexes: blue 118 above blue 129, red pair 130 + 131 to the right.
 // Bursting the reds empties columns 9 and 10, so the blue pair falls (no move) and slides right.
 const SLIDE = recordFrom(['........b..', '........brr'], { elapsedMs: 0 });
+// The last pair on the board: bursting it ends the game.
+const LAST_PAIR = recordFrom(['.........rr'], { elapsedMs: 0 });
 
 describe('GameBoard', () => {
   let platform: FakePlatform;
@@ -116,5 +118,106 @@ describe('GameBoard', () => {
       expect(ball(118)).toBeNull();
       expect(ball(130)).toBe(red);
     });
+  });
+
+  describe('pointer', () => {
+    it('maps a click to the cell under it: select, then burst', async () => {
+      const { board, store, fixture } = await setup();
+      fireEvent.click(board, { clientX: 9 * CELL + 5, clientY: 11 * CELL + 5 });
+      fixture.detectChanges();
+      expect(store.selection()?.anchor).toEqual({ row: 11, col: 9 });
+      fireEvent.click(board, { clientX: 10 * CELL + 31, clientY: 11 * CELL + 31 });
+      expect(store.phase()).toBe('pop');
+    });
+
+    it('clears the selection on an empty cell', async () => {
+      const { board, store } = await setup();
+      fireEvent.click(board, { clientX: 9 * CELL + 5, clientY: 11 * CELL + 5 });
+      expect(store.selection()).not.toBeNull();
+      fireEvent.click(board, { clientX: 5, clientY: 5 });
+      expect(store.selection()).toBeNull();
+    });
+  });
+
+  describe('keyboard', () => {
+    const press = (board: HTMLElement, key: string, init: KeyboardEventInit = {}) =>
+      fireEvent.keyDown(board, { key, ...init });
+
+    it('shows the focus ring on keyboard focus and moves it with the cursor', async () => {
+      const { board, fixture } = await setup();
+      board.focus();
+      fixture.detectChanges();
+      expect(screen.getByTestId('focus-ring').style.transform).toBe('translate(0px, 0px)');
+      press(board, 'ArrowDown');
+      press(board, 'ArrowRight');
+      fixture.detectChanges();
+      expect(screen.getByTestId('focus-ring').style.transform).toBe('translate(32px, 32px)');
+      expect(screen.getByRole('status')).toHaveTextContent('Row 2, column 2, empty');
+    });
+
+    it('hides the ring for pointer focus and on blur', async () => {
+      const { board, fixture } = await setup();
+      fireEvent.pointerDown(board);
+      board.focus();
+      fixture.detectChanges();
+      expect(screen.queryByTestId('focus-ring')).toBeNull();
+      press(board, 'ArrowUp');
+      fixture.detectChanges();
+      expect(screen.getByTestId('focus-ring')).toBeInTheDocument();
+      board.blur();
+      fixture.detectChanges();
+      expect(screen.queryByTestId('focus-ring')).toBeNull();
+    });
+
+    it('selects and bursts with Enter or Space, and announces both', async () => {
+      const { board, store, fixture } = await setup();
+      for (let i = 0; i < 11; i++) press(board, 'ArrowDown');
+      for (let i = 0; i < 9; i++) press(board, 'ArrowRight');
+      fixture.detectChanges();
+      expect(screen.getByRole('status')).toHaveTextContent('Row 12, column 10, red, group of 2');
+      press(board, 'Enter');
+      fixture.detectChanges();
+      expect(screen.getByRole('status')).toHaveTextContent(
+        '2 red balls selected, 2 points. Press Enter again to burst.',
+      );
+      press(board, ' ');
+      fixture.detectChanges();
+      expect(store.phase()).toBe('pop');
+      expect(screen.getByRole('status')).toHaveTextContent('+2, score 102');
+    });
+
+    it('clears the selection with Escape', async () => {
+      const { board, store, fixture } = await setup();
+      store.tap({ row: 11, col: 9 });
+      press(board, 'Escape');
+      fixture.detectChanges();
+      expect(store.selection()).toBeNull();
+      expect(screen.getByRole('status')).toHaveTextContent('Selection cleared.');
+    });
+
+    it('starts a new game with N, but not with a modifier', async () => {
+      const { board, store, fixture } = await setup();
+      press(board, 'n', { ctrlKey: true });
+      expect(store.gameId()).toBe('saved-game');
+      press(board, 'N');
+      fixture.detectChanges();
+      expect(store.gameId()).not.toBe('saved-game');
+      expect(screen.getByRole('status')).toHaveTextContent('New game.');
+    });
+
+    it('leaves other keys alone', async () => {
+      const { board } = await setup();
+      expect(press(board, 'Tab')).toBe(true);
+      expect(press(board, 'ArrowDown')).toBe(false);
+    });
+  });
+
+  it('announces game over', async () => {
+    const { store, advance } = await setup(LAST_PAIR);
+    store.tap({ row: 11, col: 9 });
+    store.tap({ row: 11, col: 9 });
+    advance(400);
+    expect(store.phase()).toBe('over');
+    expect(screen.getByRole('status')).toHaveTextContent('Game over. No groups left. Score 102.');
   });
 });
