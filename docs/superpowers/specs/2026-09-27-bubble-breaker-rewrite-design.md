@@ -5,7 +5,7 @@ aliases:
 tags:
   - bubble-breaker/spec
   - bubble-breaker/planning
-status: in-review
+status: accepted
 created: 2026-09-27
 branch: rewrite
 ---
@@ -137,6 +137,6 @@ Rebuild Bubble Breaker from scratch as:
 4. **Board UI**: layout math, balls, highlight, bubble, focus cursor, live region, pointer + keyboard, animations.
 5. **Chrome & screens**: title bar, status strip, softkeys, menu, dialog, toast; all screens and routes.
 6. **PWA**: manifest, icons, ngsw config, update/offline/install flows.
-7. **Container & release**: Dockerfile, nginx, `docker` CI job, release-please, image workflow, Trivy, Dependabot, CodeQL.
+7. **Container & release**: Dockerfile, nginx, `docker` CI job, release-please, image workflow, Trivy.
 8. **Deploy**: `deploy/compose.yml` + `update.sh`, DSM setup, first release 2.0.0 live.
 9. **Polish & e2e**: Playwright suites, axe, visual baselines, Lighthouse gates, manual device checks, README/About.

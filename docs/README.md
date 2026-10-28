@@ -23,7 +23,7 @@ Ground-up rewrite of Bubble Breaker, planned in theory before any code. Each pha
 | 4 | [Quality strategy](04-quality.md) | accepted |
 | 5 | [CI/CD & repo governance](05-cicd.md) | accepted |
 | 6 | [Deployment & operations](06-deployment.md) | accepted |
-| 7 | [Design spec](superpowers/specs/2026-09-27-bubble-breaker-rewrite-design.md) | in review |
+| 7 | [Design spec](superpowers/specs/2026-09-27-bubble-breaker-rewrite-design.md) | accepted |
 
 ## Using these docs in Obsidian
 
