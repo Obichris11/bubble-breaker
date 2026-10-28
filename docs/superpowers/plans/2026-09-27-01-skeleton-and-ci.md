@@ -3,7 +3,7 @@ aliases:
   - "Plan 01: Skeleton & CI"
 tags:
   - bubble-breaker/plan
-status: ready
+status: done
 created: 2026-09-27
 ---
 # Plan 01 — Skeleton & CI Implementation Plan

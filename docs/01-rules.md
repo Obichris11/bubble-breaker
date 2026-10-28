@@ -52,14 +52,11 @@ From [W]:
 ## Engine defaults
 
 ```ts
-export const STANDARD_RULES = {
-  columns: 11,
-  rows: 12,
-  colors: 5,
-  minGroup: 2,
-  score: (x: number) => x * (x - 1),
-  collapseDirection: 'right',
-} as const;
+export const STANDARD_RULES: Rules = { columns: 11, rows: 12, colors: 5, minGroup: 2 };
+export function scoreFor(size: number): number {
+  return size * (size - 1);
+}
+// Collapse direction is always right (R12); it is behaviour, not a parameter.
 ```
 
 ## Invariants (become property tests)

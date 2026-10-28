@@ -69,9 +69,14 @@ Framework-free and deterministic. Every function returns new values; nothing is 
 ```ts
 type Color = 0 | 1 | 2 | 3 | 4;           // red, blue, green, yellow, purple
 type BallId = number;                      // stable for the whole game: 0 … cols·rows−1
-type Cell = { row: number; col: number };
+interface Cell { readonly row: number; readonly col: number }
 
-interface Rules { columns: 11; rows: 12; colors: 5; minGroup: 2; }   // see 01-rules.md
+interface Rules {                          // STANDARD_RULES: 11 × 12, 5 colors, minGroup 2 (01-rules.md)
+  readonly columns: number;
+  readonly rows: number;
+  readonly colors: number;
+  readonly minGroup: number;
+}
 
 interface Board {                          // immutable
   readonly columns: number;
@@ -81,6 +86,7 @@ interface Board {                          // immutable
 
 interface Game {
   readonly seed: number;                   // uint32
+  readonly rules: Rules;
   readonly colors: readonly Color[];       // indexed by BallId, never changes
   readonly board: Board;
   readonly score: number;
@@ -90,19 +96,27 @@ interface MoveResult {                     // everything the UI needs to animate
   readonly removed: readonly BallId[];
   readonly points: number;                 // X·(X−1)
   readonly afterGravity: Board;
-  readonly afterCollapse: Board;           // === afterGravity when no column emptied
+  readonly afterCollapse: Board;           // === afterGravity when no column slid
   readonly game: Game;                     // final state
   readonly gameOver: boolean;
 }
 
-createRng(seed): () => number              // mulberry32 (same as prototype)
-newGame(seed, rules): Game
+createRng(seed): () => number              // mulberry32 (same as prototype); internal
+newGame(seed, rules = STANDARD_RULES): Game
+colorOf(game, id): Color
+ballAt(board, cell): BallId | null         // throws RangeError outside the board
+isInside(board, cell): boolean
+countBalls(board): number
+scoreFor(size): number                     // X·(X−1)
 groupAt(game, cell): readonly Cell[]       // [] when size < minGroup or empty cell
+allGroups(game): readonly (readonly Cell[])[]
 burst(game, cell): MoveResult | null       // null when groupAt is empty
 hasMoves(game): boolean
 ```
 
+- `engine/index.ts` is the public API: it re-exports the types and functions above plus `STANDARD_RULES`, but not `createRng` or the physics steps. Later layers import only from it.
 - `physics.ts` keeps `applyGravity(board)` and `collapseRight(board)` as separate steps. Later styles can add `shiftRight` or `refillLeft` without touching the existing steps.
+- `collapseRight` returns the same `Board` reference when nothing slides; the PhaseRunner skips the slide phase when `afterCollapse === afterGravity`.
 - Invariants 1–6 from [01-rules.md](01-rules.md) become fast-check property tests.
 
 ## State (signals)
