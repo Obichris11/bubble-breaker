@@ -63,7 +63,7 @@ Test seed hook: the app reads `?seed=<uint32>` **only** when `environment.testHo
 | Coverage `state/` | ≥ 90 % lines, statements, functions & branches | CI (`npm run test:ci`) |
 | Coverage overall | ≥ 80 % lines, statements, functions & branches | CI (`npm run test:ci`) |
 | E2E + axe | all pass, 0 serious/critical | CI |
-| Bundle budget (angular.json) | initial ≤ 150 kB warn / 200 kB error (gzip est.); component styles ≤ 4 kB warn / 8 kB error | build |
+| Bundle budget (angular.json) | initial ≤ 350 kB warn / 450 kB error (raw size, as Angular measures it; Lighthouse covers transfer speed); component styles ≤ 4 kB warn / 8 kB error | build |
 | Lighthouse (mobile, simulated throttling) | Performance ≥ 90, Accessibility = 100, Best Practices ≥ 95, SEO ≥ 90 | CI on PR |
 | Visual regression | ≤ 0.1 % pixel diff | CI |
 

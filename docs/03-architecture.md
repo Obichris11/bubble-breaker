@@ -198,7 +198,7 @@ Injectable interfaces bound in `app.config.ts`; tests use fakes.
 
 ## Performance budget
 
-- Initial JS ≤ 150 kB gzip (warn) / 200 kB (error). Fonts are subset Latin woff2, 2 weights.
+- Initial bundle ≤ 350 kB raw (warn) / 450 kB raw (error). Fonts are subset Latin woff2, 2 weights.
 - At most 132 ball nodes, animating only `transform` and `opacity`, with no layout work per frame. No blanket `will-change`; add it only if profiling shows jank.
 
 ## Legacy problem → architecture answer
