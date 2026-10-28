@@ -1,0 +1,33 @@
+<div
+  class="board"
+  role="application"
+  tabindex="0"
+  [attr.aria-label]="strings.board.label"
+  [class.board--grey]="greyscale()"
+  [class.board--fall]="store.phase() === 'fall'"
+  [class.board--slide]="store.phase() === 'slide'"
+  [style.width.px]="width()"
+  [style.height.px]="height()"
+  [style.--bb-cell]="cell() + 'px'"
+>
+  @for (spot of highlight(); track spot.key) {
+    <div class="spot" [style.transform]="spot.transform"></div>
+  }
+  @for (ball of balls(); track ball.id) {
+    <div
+      class="cell"
+      [class.cell--popping]="ball.popping"
+      [style.transform]="ball.transform"
+      [attr.data-ball]="ball.id"
+    >
+      <div class="bb-ball" [class]="ball.look">
+        @if (ball.glyph) {
+          <span class="hint" aria-hidden="true">{{ ball.glyph }}</span>
+        }
+      </div>
+    </div>
+  }
+  @if (bubble(); as bubble) {
+    <bb-points-bubble [text]="bubble.text" [x]="bubble.x" [y]="bubble.y" [below]="bubble.below" />
+  }
+</div>

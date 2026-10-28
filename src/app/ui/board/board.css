@@ -1,0 +1,71 @@
+:host {
+  display: block;
+}
+.board {
+  position: relative;
+  background: var(--bb-board-bg);
+  outline: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.spot,
+.cell,
+.ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--bb-cell);
+  height: var(--bb-cell);
+  pointer-events: none;
+}
+.spot {
+  z-index: var(--bb-z-hl);
+  background: var(--bb-group-bg);
+}
+.board--grey .spot {
+  background: var(--bb-group-bg-grey);
+}
+.cell {
+  z-index: var(--bb-z-ball);
+  display: grid;
+  place-items: center;
+}
+.board--fall .cell {
+  transition: transform var(--bb-dur-fall) var(--bb-ease-fall);
+}
+.board--slide .cell {
+  transition: transform var(--bb-dur-slide) var(--bb-ease-slide);
+}
+.cell--popping .bb-ball {
+  transform: scale(0.2);
+  opacity: 0;
+  transition:
+    transform var(--bb-dur-pop) var(--bb-ease-pop),
+    opacity var(--bb-dur-pop) var(--bb-ease-pop);
+}
+.hint {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: calc(var(--bb-cell) * 0.36);
+  line-height: 1;
+}
+.bb-ball--yellow .hint {
+  color: rgba(0, 0, 0, 0.5);
+}
+.ring {
+  z-index: var(--bb-z-ring);
+  border: var(--bb-focus-ring);
+  border-radius: var(--bb-radius-focus);
+  box-shadow:
+    0 0 0 1px var(--bb-hilight),
+    inset 0 0 0 1px var(--bb-hilight);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cell--popping .bb-ball {
+    transform: none;
+  }
+}
