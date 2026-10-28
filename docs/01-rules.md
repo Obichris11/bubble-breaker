@@ -38,7 +38,7 @@ Status legend: **W** = stated in [W] · **Gap** = [W] silent, decided by user ·
 | R16 | Scoring screen | W | On game over, go to scoring screen showing statistics and a New Game button | [W] "The screen immediately goes to the scoring screen …" |
 | R17 | Statistics | W + Ours | Average Score, Total Score, Games Played [W]; plus High Score (ours). Stored locally, resettable | [W] |
 | R18 | Breaker Set | W | Option: **Colorful Breakers** (default) or **Greyscale Breakers** — distinct greyscale patterns instead of colors, for monochrome displays / colorblind players | [W] "Breaker Set" |
-| R19 | Time | Ours | Elapsed time shown, not scored; pausing keeps accumulated time | — |
+| R19 | Time | Ours | Elapsed time shown, not scored; pausing keeps accumulated time. The timer starts on the first tap that selects a group (time measures play only) | User decision (2026-10-28) on the timer start |
 | R20 | Game styles | W (scope) | v1: Standard only. Engine keeps gravity / collapse / refill as separate steps so other styles can be added later | Scope decision |
 | R21 | New game | Ours | New game = new seed. Abandoned games are not counted in statistics | — |
 

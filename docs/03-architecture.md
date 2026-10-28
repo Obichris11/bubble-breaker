@@ -31,7 +31,7 @@ flowchart TB
   ui["<b>ui</b><br/>screens · chrome · board<br/>(components, OnPush)"]
   state["<b>state</b><br/>GameStore · StatsStore · SettingsStore · PhaseRunner"]
   engine["<b>engine</b><br/>pure TS, no Angular<br/>rules · rng · board · move"]
-  platform["<b>platform</b><br/>Storage · Clock · Audio · Visibility · Pwa"]
+  platform["<b>platform</b><br/>Storage · Clock · Audio · Visibility · ReducedMotion · Pwa"]
   ui -->|"reads signals, calls intents"| state
   state -->|"pure calls"| engine
   state -->|"injected ports"| platform
@@ -54,8 +54,8 @@ src/
     app.routes.ts
     strings.ts
     engine/          rules.ts rng.ts board.ts groups.ts physics.ts move.ts game.ts index.ts (+ *.spec.ts)
-    state/           game.store.ts stats.store.ts settings.store.ts phase-runner.ts persistence.ts
-    platform/        storage.ts clock.ts audio.ts visibility.ts pwa.ts
+    state/           game.store.ts stats.store.ts settings.store.ts phase-runner.ts timer.ts persistence.ts motion.ts format.ts
+    platform/        clock.ts storage.ts audio.ts visibility.ts reduced-motion.ts provide-platform.ts (pwa.ts in Plan 06) + testing/fakes.ts
     ui/
       chrome/        title-bar status-strip softkey-bar popup-menu dialog toast
       board/         board board-layout (cell math) points-bubble live-region
@@ -132,39 +132,47 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
   - `positions`: BallId → Cell. Drives the transforms and lags `game.board` during animation.
   - `popping`: set of BallIds.
   - `elapsedMs`, `paused`.
-- Derived (`computed`): `selectedPoints`, `scoreText`, `timeText`, `canInteract`.
+  - `cursor`: keyboard cursor.
+  - `covered`: a menu, screen or dialog is open; stops the timer.
+  - `showScoring`: the game-over hold is over, so the UI navigates to Scoring.
+- Derived (`computed`): `selectedPoints`, `selectedText`, `scoreText`, `timeText`, `canInteract`.
 - Intents:
   - `tap(cell)` implements the selection rules R8/R9.
-  - `newGame()`, `pause()`, `resume()`.
+  - `newGame(seed?)`, `pause()`, `resume()`, `setCovered(covered)`, `save()`.
   - Keyboard helpers: `moveCursor`, `activateCursor`, `clearSelection`.
-- **PhaseRunner** takes a `MoveResult` and steps `positions`/`phase` through pop, fall and slide. It uses the durations from `motion.ts` (which mirrors `tokens.css`) and an injected `Clock`. With reduced motion every duration is 0. Tests use a fake clock.
+- **PhaseRunner** plays the frames built by `framesFor(before, result, motion)`: pop on the old board, fall to `afterGravity`, slide to `afterCollapse` (skipped when `afterCollapse === afterGravity`), then an `over` hold on game over. It uses the durations from `state/motion.ts` (which mirrors `tokens.css`) and the injected clock. With reduced motion the pop keeps an 80 ms fade and every other duration is 0; zero-length frames apply synchronously. Tests use `FakeClock`.
+- At the `over` frame the store stops the timer, records statistics, clears `bb:v1:game` and plays the game-over sound; `showScoring` turns true after the hold.
 
 **StatsStore**
 - Holds `high`, `total`, `played`, `last { score, timeMs }`, with `average` computed.
 - `recordFinished(gameId, score, timeMs)` is **idempotent**: it keeps `lastRecordedGameId` and ignores repeats (handoff "exactly once").
+- `newHigh` (not persisted) marks a record that beat the previous high. `reset()` keeps `lastRecordedGameId`.
 
 **SettingsStore**
 - Holds `breakerSet: 'colorful' | 'greyscale'`, `shapeHints`, `sound`.
+- Defaults: Colorful, shape hints off, sound on.
 
 **Timer**
-- Elapsed time is accumulated: on each resume it stores `startedAt`, and on pause it adds the delta.
-- It pauses when a menu, screen or dialog is open, or the page is hidden.
+- Elapsed time is accumulated by `state/timer.ts`. It starts on the first tap that selects a group, runs while the game is not paused, covered or over, and stops at game over. The display updates on whole seconds; saves use the exact value.
+- It pauses when a menu, screen or dialog is open, or the page is hidden. Before the first tap a hidden page or `pause()` does nothing (no Paused dialog).
 - It never resets on resume (fixes the legacy bug).
 
 ## Persistence
 
-- Uses `localStorage` through the `Storage` port.
+- Uses `localStorage` through the `StoragePort`.
 - The schema is versioned and every read is validated by hand-written guards. A corrupt or unknown version falls back to defaults and never crashes ([ADR-0005](adr/0005-persistence-schema.md)).
 
 | Key | Content | Written |
 |---|---|---|
 | `bb:v1:settings` | `{ breakerSet, shapeHints, sound }` | on change |
 | `bb:v1:stats` | `{ high, total, played, last, lastRecordedGameId }` | on game over |
-| `bb:v1:game` | `{ gameId, seed, colors, cells, score, elapsedMs }` | after each burst, on pause/hidden, before SW reload; cleared at game over |
+| `bb:v1:game` | `{ gameId, seed, colors, cells, score, elapsedMs }` | at the deal, after each burst settles, on pause/hidden, when a menu/screen/dialog covers the board, before SW reload; cleared at game over |
 
-- On start, a valid `bb:v1:game` is restored in the Paused state; otherwise a new game starts.
-- Test hook: when `environment.testHooks` is true (dev and e2e builds only), `?seed=<uint32>` starts a new game with that seed. Production ignores it (see 04).
+- On start, a valid `bb:v1:game` with moves left is restored: in the Paused state if its timer had started (`elapsedMs > 0`), otherwise unpaused. Without one, a new game starts.
+- Test hook: when `environment.testHooks` is true (dev and e2e builds only), `?seed=<uint32>` starts a new game with that seed. Production ignores it (see 04). Deferred to Plan 08; `GameStore.newGame(seed?)` already accepts a seed.
 - Saves happen after the animation settles, from the final `Game`.
+- `bb:v1:game` is also written when a game is dealt, so a reload never restores an abandoned game.
+- A saved game without moves is discarded on start.
 
 ## UI
 
@@ -192,15 +200,16 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 
 ## Platform ports
 
-Injectable interfaces bound in `app.config.ts`; tests use fakes.
+Abstract classes used as DI tokens, bound by `providePlatform()` in `app.config.ts`; tests use the fakes in `platform/testing/fakes.ts` via `createFakePlatform()`.
 
-- **Storage**: `get/set/remove` JSON, safe when `localStorage` throws (private mode).
-- **Clock**: `now()`, `setTimeout`, `clearTimeout`.
-- **Audio**: lazily creates or resumes the `AudioContext` on the first user gesture. It plays select, pop and game-over sounds synthesized with WebAudio (ported from legacy `sound.service.ts`) and does nothing when sound is off.
-- **Visibility**: a `hidden` signal from `visibilitychange`.
-- **Pwa**:
+- **StoragePort**: `get/set/remove` JSON. `BrowserStorage` resolves `localStorage` on every call and swallows every error with a warning (private mode, quota).
+- **ClockPort**: `now()`, `setTimeout`, `clearTimeout`.
+- **AudioPort**: `play('select' | 'pop' | 'gameOver')`. `BrowserAudio` creates or resumes the `AudioContext` on the first play, which always runs inside a tap or key press, and plays sounds synthesized from the legacy designs. It stays silent when Web Audio is unavailable. The GameStore calls it only when sound is on.
+- **VisibilityPort**: a `hidden` signal from `visibilitychange`.
+- **ReducedMotionPort**: a `reduced` signal from `matchMedia('(prefers-reduced-motion: reduce)')`; false where `matchMedia` is missing.
+- **Pwa** (Plan 06):
   - Exposes `updateAvailable`, `offlineReady` and `installAvailable` signals from `SwUpdate` and `beforeinstallprompt`.
-  - `reload()` saves the game first.
+  - `reload()` saves the game first (`GameStore.save()`).
   - The install "Not now" timestamp is persisted in `bb:v1:settings`.
 
 ## Error handling
