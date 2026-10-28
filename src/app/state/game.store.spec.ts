@@ -273,6 +273,18 @@ describe('GameStore', () => {
       expect(store.showScoring()).toBe(true);
     });
 
+    it('clears Paused when the page was hidden during the final burst', () => {
+      platform.clock.advance(100);
+      store.pause();
+      expect(store.paused()).toBe(true);
+      platform.clock.advance(300);
+      expect(store.phase()).toBe('over');
+      expect(store.paused()).toBe(false);
+      expect(store.timeText()).toBe('1:05');
+      platform.clock.advance(500);
+      expect(store.showScoring()).toBe(true);
+    });
+
     it('ignores pause and save after game over', () => {
       platform.clock.advance(400);
       store.pause();

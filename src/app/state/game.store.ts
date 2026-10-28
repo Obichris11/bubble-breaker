@@ -291,8 +291,12 @@ export class GameStore {
     }
   }
 
-  /** Game over (rule R13): stop the clock, record statistics once, drop the save. */
+  /**
+   * Game over (rule R13): stop the clock, record statistics once, drop the save. A pause during
+   * the final burst is dropped too, so Scoring never opens behind a Paused dialog.
+   */
   private finish(): void {
+    this.pausedSignal.set(false);
     this.syncTimer();
     this.stats.recordFinished(this.gameIdSignal(), this.gameSignal().score, this.timer.exactMs());
     clearGame(this.storage);
