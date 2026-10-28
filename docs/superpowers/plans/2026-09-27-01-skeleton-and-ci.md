@@ -12,11 +12,16 @@ created: 2026-09-27
 
 **Goal:** Replace the legacy app with an empty but fully tooled Angular 22 workspace (strict TS, lint, format, hooks, Vitest with coverage gates, app shell with design tokens and self-hosted font), guarded by GitHub Actions CI, in a public repo whose `main` branch is protected by a ruleset.
 
-**Architecture:** Generate a fresh Angular 22 workspace (zoneless, standalone, Vitest) in a temp folder and copy it over the legacy files on branch `rewrite`. Tooling is configured so the dependency rule from ADR-0002 is lint-enforced before any layer code exists. CI mirrors the local `npm run check`.
+**Architecture:** Generate a fresh Angular 22 workspace (zoneless, standalone, Vitest) in a temp folder and copy it over the legacy files on branch `feat/skeleton` (off `main`), merged by PR. Tooling is configured so the dependency rule from ADR-0002 is lint-enforced before any layer code exists. CI mirrors the local `npm run check`.
 
 **Tech Stack:** Angular 22.2, TypeScript 6.0, Vitest 5 (via `@angular/build:unit-test`), jsdom, ESLint 10 + angular-eslint 22 + typescript-eslint 8, Prettier 3, Husky 9, lint-staged, commitlint, GitHub Actions, CodeQL, Dependabot.
 
 **Spec:** [2026-09-27-bubble-breaker-rewrite-design.md](../specs/2026-09-27-bubble-breaker-rewrite-design.md) · details in [03-architecture.md](../../03-architecture.md), [04-quality.md](../../04-quality.md), [05-cicd.md](../../05-cicd.md)
+
+> [!NOTE]
+> **Repo state before this plan:** the user already made the repo public, made `main` the default branch (it holds the planning docs) and deleted `master` (Task 8 steps 3, 5, 6). An old ruleset "Master branch protection" already requires PRs on `main`.
+>
+> **Cloud session:** `.claude/hooks/cloud-setup.sh` provides Node ≥ 24.15. A cloud session runs Tasks 1–7 and Task 8 Steps 1–2, keeps the PR open as a draft, and stops. Task 8 steps 4 and 7 need `gh` admin rights and run locally. If `gh` is unavailable, skip the CI-watch steps and report them.
 
 ## Global Constraints
 
@@ -64,7 +69,7 @@ bubble-breaker/
   docs/ …                        unchanged planning docs
 ```
 
-Removed legacy files: `src/**` (old app), `Dockerfile`, `docker-compose.yml`, `nginx.conf`, `DEPLOYMENT.md`, `jest.config.js`, `.eslintrc.json`, `.prettierrc`, `ngsw-config.json`, `public/manifest.webmanifest`, `public/favicon-*.png`, `.claude/settings.local.json` (untracked + ignored). They come back in a new form in later plans. The old versions stay reachable via tag `v0-legacy`.
+Removed legacy files: `src/**` (old app), `Dockerfile`, `docker-compose.yml`, `nginx.conf`, `DEPLOYMENT.md`, `jest.config.js`, `.eslintrc.json`, `.prettierrc`, `ngsw-config.json`, `public/manifest.webmanifest`, `public/favicon-*.png`, `.claude/settings.local.json` (untracked + ignored; the shared `.claude/settings.json` and `.claude/hooks/` stay tracked). They come back in a new form in later plans. The old versions stay reachable via tag `v0-legacy`.
 
 ---
 
@@ -121,7 +126,8 @@ Expected: `angular.json package.json src public tsconfig.json tsconfig.app.json 
 
 ```bash
 cd ~/Projects/claude_kot/bubble-breaker
-git checkout rewrite
+git fetch origin
+git checkout -b feat/skeleton origin/main
 git rm -r -q src public Dockerfile docker-compose.yml nginx.conf DEPLOYMENT.md jest.config.js \
   .eslintrc.json .prettierrc ngsw-config.json angular.json package.json package-lock.json \
   tsconfig.json tsconfig.app.json tsconfig.spec.json README.md .vscode .editorconfig
@@ -137,7 +143,7 @@ Expected: only `D` lines. `docs/` and `.gitignore` are untouched.
 ```bash
 rsync -a --exclude .gitignore "$TMPDIR/bb-new/" ./
 cat "$TMPDIR/bb-new/.gitignore" > .gitignore
-printf '\n# Local tooling\n.claude/\n\n# Obsidian\n.obsidian/\n.trash/\n' >> .gitignore
+printf '\n# Local tooling\n.claude/settings.local.json\n\n# Obsidian\n.obsidian/\n.trash/\n' >> .gitignore
 ```
 
 This replaces `.gitignore` with the Angular one plus the local tooling and Obsidian entries (the old Obsidian lines are re-added here).
@@ -801,7 +807,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, rewrite]
+    branches: [main]
 
 permissions: {}
 
@@ -976,13 +982,17 @@ Expected: all files pass. Fix formatting with `npx prettier --write .github` if 
 ```bash
 git add .github
 git commit -m "ci: add ci, codeql, pr-title workflows and dependabot"
-git push
+git push -u origin feat/skeleton
 ```
 
-- [ ] **Step 7: Verify CI on GitHub**
+- [ ] **Step 7: Open a draft PR and verify CI on GitHub**
 
-Run: `gh run list --branch rewrite --limit 3` and then `gh run watch` for the CI run.
-Expected: workflow `CI` succeeds with jobs `quality` and `build` green. CodeQL does not run on `rewrite`; it runs from the first PR onward.
+```bash
+gh pr create --draft --base main --title "feat: angular 22 skeleton with ci" --body "Plan 01: docs/superpowers/plans/2026-09-27-01-skeleton-and-ci.md"
+gh pr checks --watch
+```
+
+Expected: `quality`, `build`, `pr-title` and both CodeQL `Analyze` jobs succeed. CI runs on `pull_request`, so the PR is what triggers it. If `gh` is unavailable, open the PR with the GitHub tooling the session has.
 
 ---
 
@@ -1075,12 +1085,15 @@ git commit -m "docs: add readme, license, security policy and contributing guide
 git push
 ```
 
-- [ ] **Step 2: Wait for CI to be green on `rewrite`**
+- [ ] **Step 2: Wait for CI to be green on the PR**
 
-Run: `gh run watch $(gh run list --branch rewrite --limit 1 --json databaseId -q '.[0].databaseId')`
+Run: `gh pr checks --watch`
 Expected: success.
 
-- [ ] **Step 3: Make the repository public (confirm first)**
+> [!NOTE]
+> A cloud session stops here and leaves the PR open. Steps 4, 7 and 8 run locally.
+
+- [x] **Step 3: Make the repository public (done by the user)**
 
 ```bash
 gh repo edit Obichris11/bubble-breaker --visibility public --accept-visibility-change-consequences
@@ -1104,7 +1117,7 @@ gh api -X PUT repos/Obichris11/bubble-breaker/private-vulnerability-reporting
 
 Expected: each command exits 0.
 
-- [ ] **Step 5: Create `main` and make it the default (confirm first)**
+- [x] **Step 5: Create `main` and make it the default (done by the user)**
 
 ```bash
 git push origin rewrite:main
@@ -1113,7 +1126,7 @@ gh repo edit Obichris11/bubble-breaker --default-branch main
 
 Expected: `gh repo view --json defaultBranchRef -q .defaultBranchRef.name` prints `main`.
 
-- [ ] **Step 6: Delete `master` (confirm first; legacy remains at tag `v0-legacy`)**
+- [x] **Step 6: Delete `master` (done by the user; legacy remains at tag `v0-legacy`)**
 
 ```bash
 git ls-remote --tags origin v0-legacy
@@ -1166,25 +1179,24 @@ Write `$TMPDIR/ruleset.json`:
 }
 ```
 
+This replaces the old ruleset "Master branch protection" in place:
+
 ```bash
-gh api -X POST repos/Obichris11/bubble-breaker/rulesets --input "$TMPDIR/ruleset.json"
+id=$(gh api repos/Obichris11/bubble-breaker/rulesets -q '.[] | select(.name=="Master branch protection") | .id')
+gh api -X PUT "repos/Obichris11/bubble-breaker/rulesets/$id" --input "$TMPDIR/ruleset.json"
 ```
 
-Expected: JSON response with `"enforcement": "active"`. Actor id 5 is the repository Admin role (emergency bypass, per 05).
+Expected: JSON response with `"name": "main"` and `"enforcement": "active"`. Actor id 5 is the repository Admin role (emergency bypass, per 05).
 
-- [ ] **Step 8: Prove the ruleset with a tiny PR**
+- [ ] **Step 8: Prove the ruleset on the Plan 01 PR**
 
 ```bash
-git checkout main && git pull
-git checkout -b chore/verify-ruleset
-printf '\n' >> CONTRIBUTING.md
-git commit -am "chore: verify branch ruleset"
-git push -u origin chore/verify-ruleset
-gh pr create --fill --title "chore: verify branch ruleset"
+gh pr ready
 gh pr checks --watch
+gh pr view --json mergeStateStatus -q .mergeStateStatus
 ```
 
-Expected: `quality`, `build`, `pr-title`, `Analyze (javascript-typescript)` and `Analyze (actions)` all run and pass, and the PR shows as mergeable with squash only. Merge it with `gh pr merge --squash --delete-branch`. Then run `git checkout main && git pull && git branch -D rewrite`, and delete the remote branch: `git push origin --delete rewrite`.
+Expected: `quality`, `build`, `pr-title`, `Analyze (javascript-typescript)` and `Analyze (actions)` all run and pass, and the PR shows as mergeable with squash only. Merge it with `gh pr merge --squash --delete-branch`, then run `git checkout main && git pull`.
 
 - [ ] **Step 9: Update the roadmap**
 
