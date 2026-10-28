@@ -429,6 +429,17 @@ describe('GameStore', () => {
     });
   });
 
+  describe('cursor group', () => {
+    it('is the group under the cursor, or [] on an empty cell', () => {
+      const store = start(SLIDE);
+      expect(store.cursorGroup()).toEqual([]);
+      for (let i = 0; i < 11; i++) store.moveCursor('down');
+      for (let i = 0; i < 9; i++) store.moveCursor('right');
+      expect(store.cursorGroup()).toEqual(groupAt(store.game(), { row: 11, col: 9 }));
+      expect(store.cursorGroup()).toHaveLength(2);
+    });
+  });
+
   describe('sound', () => {
     it('plays nothing when sound is off', () => {
       const store = start();
