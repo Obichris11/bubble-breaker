@@ -7,4 +7,27 @@ export const STRINGS = {
     /** Prefix of the time field while the timer is stopped by Paused or an open menu/screen. */
     pausedPrefix: '‖ ',
   },
+  board: {
+    /** `aria-label` of the board (`role="application"`): what it is and its keys. */
+    label:
+      'Bubble Breaker board, 11 columns by 12 rows. Arrow keys move, Enter or Space selects and bursts, Escape clears, N starts a new game.',
+    /** Spoken ball names per Breaker Set, indexed by engine `Color` (red, blue, green, yellow, purple). */
+    colorNames: {
+      colorful: ['red', 'blue', 'green', 'yellow', 'purple'],
+      greyscale: ['diagonal', 'solid', 'dotted', 'banded', 'checkered'],
+    },
+    /** Points bubble. A group has at least 2 balls, so it is always worth at least 2 points. */
+    points: (points: string) => `${points} points`,
+    cursorEmpty: (row: number, col: number) => `Row ${String(row)}, column ${String(col)}, empty`,
+    cursorBall: (row: number, col: number, color: string, groupSize: number) =>
+      groupSize > 0
+        ? `Row ${String(row)}, column ${String(col)}, ${color}, group of ${String(groupSize)}`
+        : `Row ${String(row)}, column ${String(col)}, ${color}, no group`,
+    selected: (size: number, color: string, points: string) =>
+      `${String(size)} ${color} balls selected, ${points} points. Press Enter again to burst.`,
+    cleared: 'Selection cleared.',
+    burst: (points: string, score: string) => `+${points}, score ${score}`,
+    gameOver: (score: string) => `Game over. No groups left. Score ${score}.`,
+    newGame: 'New game.',
+  },
 } as const;
