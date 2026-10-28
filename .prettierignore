@@ -1,0 +1,5 @@
+dist/
+coverage/
+.angular/
+docs/
+package-lock.json
