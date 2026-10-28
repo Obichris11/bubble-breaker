@@ -52,7 +52,8 @@ The phase docs leave these points open or contradict each other. Task 12 writes 
 | AudioContext creation | Created or resumed on the first `play()`. Every first play happens inside a tap or key press | Fixes the legacy "created before gesture" bug without a separate unlock call |
 | Sounds | `select`, `pop`, `gameOver`, synthesized from the legacy click, pop and game-over designs at master volume 0.25 | 03 lists these three; the legacy fall, bonus and start sounds are dropped |
 | Default settings | Colorful Breakers, shape hints off, sound on | 02-ux: shape hints off by default; legacy had sound on |
-| Timer start | Runs from the deal; stops at game over and while paused or covered | No doc says when it starts; matches the design prototype |
+| Timer start | Starts on the first tap that selects a group; stops at game over and while paused or covered. Before that first tap, `pause()` and a hidden page do nothing (no Paused dialog). A restored game counts as started when its `elapsedMs > 0` | User decision (2026-10-28): the time statistic measures play only, like Minesweeper. See the amendment in Task 11 |
+| Game id without HTTPS | No fallback for `crypto.randomUUID()` | The app is only served through the HTTPS reverse proxy (container bound to localhost, 06-deployment), and the service worker needs a secure context anyway; `localhost` covers development |
 | Covered vs paused | `setCovered(true)` (menu, screen or dialog open) stops the timer only. `pause()` (page hidden, restored game) also shows the Paused dialog and blocks taps | 02-ux distinguishes the two |
 | Time text | `m:ss`, prefixed with `‖ ` while paused or covered; Selected shows `–` without a selection | Design prototype (`Game Screen.dc.html`) |
 | Game-over sequence | At the start of the hold: phase `over`, timer stops, stats recorded, save cleared, game-over sound. After the hold (500 ms, 0 reduced): `showScoring` turns true and the UI navigates | Recording before the hold keeps "exactly once" safe if the page reloads during the hold |
@@ -60,7 +61,7 @@ The phase docs leave these points open or contradict each other. Task 12 writes 
 | Stats reset | Zeroes the numbers but keeps `lastRecordedGameId` | A later repeat of the same game must still be ignored |
 | `last` before any game | `{ score: 0, timeMs: 0 }` | Matches the prototype's reset values |
 | Save points | At the deal, after each burst settles, on `pause()`, on `setCovered(true)`, and through `save()` (Plan 06 calls it before a SW reload). Cleared at game over | Saving at the deal stops an abandoned game from being restored after a reload |
-| Restore | A valid save that still has moves is restored as Paused. One without moves is dropped and a new game is dealt | Never resume into a dead board |
+| Restore | A valid save that still has moves is restored, as Paused if its timer had started. One without moves is dropped and a new game is dealt | Never resume into a dead board |
 | Keyboard cursor | Starts at row 0, col 0 for each new game; moves stay on the board and never wrap | No doc gives a start cell |
 | `?seed=` test hook | Deferred to Plan 08. `newGame(seed?)` already accepts a seed | No `environment.testHooks` exists yet; only the e2e suite needs it |
 
@@ -2587,7 +2588,16 @@ Behaviour summary:
 - **Start-up:** a valid `bb:v1:game` with moves left is restored as Paused. Otherwise a new game is dealt and saved at once.
 - **Burst:** the selection clears, `game` jumps to the result, the pop sound plays, and the PhaseRunner applies the frames. When they settle, `phase` returns to `idle` and the game is saved.
 - **Game over:** the `over` frame stops the timer, calls `StatsStore.recordFinished(gameId, score, exactMs)`, clears `bb:v1:game` and plays the game-over sound. After the hold, `showScoring` turns true.
-- **Timer:** runs while not paused, not covered and not over.
+- **Timer:** starts on the first tap that selects a group, then runs while not paused, not covered and not over.
+
+> [!IMPORTANT]
+> **Amendment (user decision 2026-10-28): the timer starts on the first tap, not at the deal.** The code blocks below were verified before this decision. Apply the change test-first while doing this task:
+> - Add `private readonly startedSignal = signal(false)`.
+> - `newGame()` sets it to `false`. `restore()` sets it to `saved.elapsedMs > 0` and sets `pausedSignal` to that same value, so an untouched restored board is not shown as Paused.
+> - `tap()` sets it to `true` when it selects a group (the branch that plays `select`), then calls `syncTimer()`.
+> - `syncTimer()` runs the timer only when `startedSignal()` is also true.
+> - `pause()` returns early when `!startedSignal()`.
+> - Tests: replace `'runs from the deal and shows m:ss'` with two tests, "does not run before the first tap" (advance 61 s → `0:00`) and "starts on the first tap and shows m:ss". In the `timer, pause and cover` `beforeEach`, after `store.newGame(1)`, add `store.tap(firstGroup(store.game())[0]!)` and `store.clearSelection()`. Add a test that `pause()` before the first tap leaves `paused()` false, and a restore test for a save with `elapsedMs: 0` (not paused). Fix any other spec that expected time to pass without a tap, and update the test counts quoted in later steps.
 - **Hidden page:** an `effect` on `VisibilityPort.hidden` calls `pause()`. Becoming visible again does not resume.
 - **Sounds:** play only when `SettingsStore.sound()` is on. `select` plays on selection, `pop` on burst, `gameOver` at the over frame.
 
@@ -3406,7 +3416,7 @@ Expected: PASS (193 tests), with no `ERROR: Coverage for … does not meet` line
 
 4. **SettingsStore**: add "Defaults: Colorful, shape hints off, sound on."
 
-5. **Timer**: replace the first bullet with "Elapsed time is accumulated by `state/timer.ts`. It runs from the deal while the game is not paused, covered or over, and stops at game over. The display updates on whole seconds; saves use the exact value."
+5. **Timer**: replace the first bullet with "Elapsed time is accumulated by `state/timer.ts`. It starts on the first tap that selects a group, runs while the game is not paused, covered or over, and stops at game over. The display updates on whole seconds; saves use the exact value."
 
 6. "Persistence": add two bullets:
    - "`bb:v1:game` is also written when a game is dealt, so a reload never restores an abandoned game."
