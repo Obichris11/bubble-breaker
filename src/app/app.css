@@ -1,0 +1,23 @@
+:host {
+  display: block;
+  height: 100dvh;
+}
+.app-window {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bb-face);
+}
+.title-bar {
+  height: var(--bb-titlebar-h);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--bb-space-4);
+  background: linear-gradient(90deg, var(--bb-title-from), var(--bb-title-to));
+  color: var(--bb-title-text);
+  font: 700 var(--bb-fs-m) / 1 var(--bb-font);
+}
+.content {
+  flex: 1;
+  background: var(--bb-board-bg);
+}

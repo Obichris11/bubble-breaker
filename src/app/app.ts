@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { STRINGS } from './strings';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet],
   selector: 'bb-root',
-  styleUrl: './app.css',
+  imports: [RouterOutlet],
   templateUrl: './app.html',
+  styleUrl: './app.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
-  protected readonly title = signal('bubble-breaker');
+  protected readonly strings = STRINGS;
 }
