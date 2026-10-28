@@ -59,13 +59,15 @@ Test seed hook: the app reads `?seed=<uint32>` **only** when `environment.testHo
 |---|---|---|
 | Lint, format, typecheck | 0 errors, 0 warnings | pre-commit (staged files) + CI |
 | Unit/component tests | all pass | pre-push + CI |
-| Coverage `engine/` | ≥ 95 % lines & branches | CI |
-| Coverage `state/` | ≥ 90 % | CI |
-| Coverage overall | ≥ 80 % | CI |
+| Coverage `engine/` | ≥ 95 % lines, statements, functions & branches | CI (`npm run test:ci`) |
+| Coverage `state/` | ≥ 90 % lines, statements, functions & branches | CI (`npm run test:ci`) |
+| Coverage overall | ≥ 80 % lines, statements, functions & branches | CI (`npm run test:ci`) |
 | E2E + axe | all pass, 0 serious/critical | CI |
 | Bundle budget (angular.json) | initial ≤ 150 kB warn / 200 kB error (gzip est.); component styles ≤ 4 kB warn / 8 kB error | build |
 | Lighthouse (mobile, simulated throttling) | Performance ≥ 90, Accessibility = 100, Best Practices ≥ 95, SEO ≥ 90 | CI on PR |
 | Visual regression | ≤ 0.1 % pixel diff | CI |
+
+Coverage mechanism: `npm run test:ci` runs `ng test --watch=false --coverage` (Angular `@angular/build:unit-test` builder, Vitest runner, v8 provider). The global and per-folder thresholds (`src/app/engine/**`, `src/app/state/**`) and the coverage excludes live in `vitest-base.config.mts`, which the builder loads via `runnerConfig` and enforces itself: any unmet threshold prints `ERROR: Coverage for … does not meet "<glob>" threshold` and the command exits non-zero. The coverage scope (`src/app/**/*.ts`) is set with `coverageInclude` in `angular.json`, **not** in the Vitest config: only then does the builder add the globs for its bundled `spec-*.js`/`chunk-*.js` files, otherwise executed code is dropped before source-map remapping and everything reports 0 %. Because the include is explicit, untested files under `src/app/` are reported at 0 % and count against the thresholds. Verified with an untested probe file in `src/app/engine/` (0 % < 95 % → exit 1); no separate CI coverage step is needed.
 
 > [!NOTE]
 > Lighthouse removed its PWA category in v12; installability is asserted in E2E instead (manifest fields, 192/512 + maskable icons, SW controls page, offline reload).
