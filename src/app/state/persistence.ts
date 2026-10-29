@@ -14,12 +14,20 @@ export interface Settings {
   readonly breakerSet: BreakerSet;
   readonly shapeHints: boolean;
   readonly sound: boolean;
+  /** When the player last turned down the install notice (`ClockPort.epochMs()`), or null. */
+  readonly installDismissedAt: number | null;
 }
+
+/** Stored form of the settings: records written before Plan 06 lack `installDismissedAt`. */
+export type StoredSettings = Omit<Settings, 'installDismissedAt'> & {
+  readonly installDismissedAt?: number | null;
+};
 
 export const DEFAULT_SETTINGS: Settings = {
   breakerSet: 'colorful',
   shapeHints: false,
   sound: true,
+  installDismissedAt: null,
 };
 
 export interface LastGame {
@@ -73,12 +81,15 @@ function isDuration(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0;
 }
 
-export function isSettings(value: unknown): value is Settings {
+export function isSettings(value: unknown): value is StoredSettings {
   return (
     isRecord(value) &&
     (value['breakerSet'] === 'colorful' || value['breakerSet'] === 'greyscale') &&
     typeof value['shapeHints'] === 'boolean' &&
-    typeof value['sound'] === 'boolean'
+    typeof value['sound'] === 'boolean' &&
+    (value['installDismissedAt'] === undefined ||
+      value['installDismissedAt'] === null ||
+      isDuration(value['installDismissedAt']))
   );
 }
 
@@ -153,7 +164,7 @@ export function fromGameRecord(record: GameRecord): SavedGame {
 
 export function loadSettings(storage: StoragePort): Settings {
   const value = storage.get(KEYS.settings);
-  return isSettings(value) ? value : DEFAULT_SETTINGS;
+  return isSettings(value) ? { ...DEFAULT_SETTINGS, ...value } : DEFAULT_SETTINGS;
 }
 
 export function saveSettings(storage: StoragePort, settings: Settings): void {

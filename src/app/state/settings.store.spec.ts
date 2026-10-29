@@ -20,6 +20,7 @@ describe('SettingsStore', () => {
     expect(settings.breakerSet()).toBe('colorful');
     expect(settings.shapeHints()).toBe(false);
     expect(settings.sound()).toBe(true);
+    expect(settings.installDismissedAt()).toBeNull();
   });
 
   it('loads stored settings', () => {
@@ -45,13 +46,16 @@ describe('SettingsStore', () => {
     settings.setBreakerSet('greyscale');
     settings.setShapeHints(true);
     settings.setSound(false);
+    settings.setInstallDismissedAt(1_700_000_000_000);
     expect(settings.breakerSet()).toBe('greyscale');
     expect(settings.shapeHints()).toBe(true);
     expect(settings.sound()).toBe(false);
+    expect(settings.installDismissedAt()).toBe(1_700_000_000_000);
     expect(platform.storage.get(KEYS.settings)).toEqual({
       breakerSet: 'greyscale',
       shapeHints: true,
       sound: false,
+      installDismissedAt: 1_700_000_000_000,
     });
   });
 });
