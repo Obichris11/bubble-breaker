@@ -1,0 +1,14 @@
+.dialog {
+  width: min(300px, 100% - 2 * var(--bb-space-6));
+  max-width: none;
+  border: 0;
+  color: var(--bb-text);
+}
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.3);
+}
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--bb-space-3);
+}

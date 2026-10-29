@@ -1,0 +1,25 @@
+<dialog
+  #dialog
+  class="bb-window dialog"
+  role="alertdialog"
+  [attr.aria-labelledby]="titleId"
+  [attr.aria-describedby]="messageId"
+  (cancel)="onCancel($event)"
+  (close)="onClose()"
+>
+  <h2 class="bb-window__title" [id]="titleId">{{ heading() }}</h2>
+  <div class="bb-window__body">
+    <p class="bb-window__text" [id]="messageId">{{ message() }}</p>
+    <div class="actions">
+      <button type="button" class="bb-button" (click)="confirm.emit()">{{ confirmLabel() }}</button>
+      <button
+        #cancelButton
+        type="button"
+        class="bb-button bb-button--default"
+        (click)="dismiss.emit()"
+      >
+        {{ cancelLabel() }}
+      </button>
+    </div>
+  </div>
+</dialog>
