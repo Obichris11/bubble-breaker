@@ -252,7 +252,7 @@ export class GameStore {
     this.selectionSignal.set(null);
   }
 
-  /** Writes `bb:v1:game`. Also called by the Pwa port before a reload (Plan 06). */
+  /** Writes `bb:v1:game`. Also called by `PwaStore` before a reload. */
   save(): void {
     if (this.phaseSignal() === 'over') {
       return;
