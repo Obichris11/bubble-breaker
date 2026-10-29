@@ -1,0 +1,13 @@
+:host {
+  display: block;
+  flex: none;
+}
+.title-bar {
+  display: flex;
+  align-items: center;
+  height: var(--bb-titlebar-h);
+  padding: 0 var(--bb-space-4);
+  background: linear-gradient(90deg, var(--bb-title-from), var(--bb-title-to));
+  color: var(--bb-title-text);
+  font: 700 var(--bb-fs-m) / 1 var(--bb-font);
+}

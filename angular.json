@@ -30,7 +30,7 @@
                 "output": "fonts"
               }
             ],
-            "styles": ["src/styles/tokens.css", "src/styles/base.css"]
+            "styles": ["src/styles/tokens.css", "src/styles/base.css", "src/styles/chrome.css"]
           },
           "configurations": {
             "production": {

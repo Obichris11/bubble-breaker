@@ -2,6 +2,9 @@
 export const STRINGS = {
   appTitle: 'Bubble Breaker',
   status: {
+    score: 'Score',
+    selected: 'Selected',
+    time: 'Time',
     /** "Selected" field when nothing is selected. */
     noSelection: '–',
     /** Prefix of the time field while the timer is stopped by Paused or an open menu/screen. */
