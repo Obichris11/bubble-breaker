@@ -1,0 +1,17 @@
+<bb-screen [heading]="strings.howToPlay.title">
+  <p>{{ strings.howToPlay.select }}</p>
+  <p>{{ strings.howToPlay.burst }}</p>
+  <div class="formula">
+    <p class="formula__title">{{ strings.howToPlay.formula }}</p>
+    <dl class="points">
+      @for (row of points; track row.label) {
+        <div class="pair">
+          <dt>{{ row.label }}</dt>
+          <dd>{{ row.value }}</dd>
+        </div>
+      }
+    </dl>
+  </div>
+  <p>{{ strings.howToPlay.plan }}</p>
+  <p class="note">{{ strings.howToPlay.keyboard }}</p>
+</bb-screen>

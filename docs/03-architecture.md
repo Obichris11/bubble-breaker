@@ -48,18 +48,20 @@ flowchart TB
 ```text
 src/
   main.ts
-  styles/            tokens.css (verbatim from design), base.css, fonts (self-hosted Noto Sans)
+  styles/            tokens.css (verbatim from design), base.css, chrome.css (shared buttons and windows), fonts (self-hosted Noto Sans)
   app/
     app.config.ts    provideZonelessChangeDetection, router, service worker, ports
     app.routes.ts
     strings.ts
+    version.ts       VERSION for About (bumped by release-please, Plan 07)
     engine/          rules.ts rng.ts board.ts groups.ts physics.ts move.ts game.ts index.ts (+ *.spec.ts)
     state/           game.store.ts stats.store.ts settings.store.ts phase-runner.ts timer.ts persistence.ts motion.ts format.ts
     platform/        clock.ts storage.ts audio.ts visibility.ts reduced-motion.ts provide-platform.ts (pwa.ts in Plan 06) + testing/fakes.ts
     ui/
-      chrome/        title-bar status-strip softkey-bar popup-menu dialog toast
+      chrome/        shell title-bar status-strip softkey-bar popup-menu confirm-dialog toast
       board/         board-area board board-layout (cell math) ball-look announcer points-bubble live-region
-      screens/       game scoring statistics options how-to-play about
+      screens/       screen stat-rows game-screen paused-dialog scoring-screen scoring-guard
+                     statistics-screen options-screen how-to-play-screen about-screen
 ```
 
 ## Engine (pure TypeScript)
@@ -132,7 +134,7 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
   - `positions`: BallId → Cell. Drives the transforms and lags `game.board` during animation.
   - `popping`: set of BallIds.
   - `elapsedMs`, `paused`.
-  - `cursor`: keyboard cursor.
+  - `cursor`: keyboard cursor; starts in the bottom row, middle column after a deal or a restore.
   - `covered`: a menu, screen or dialog is open; stops the timer.
   - `showScoring`: the game-over hold is over, so the UI navigates to Scoring.
 - Derived (`computed`): `selectedPoints`, `selectedText`, `scoreText`, `timeText`, `canInteract`, `cursorGroup` (the group under the cursor, `[]` on an empty cell or a lone ball).
@@ -182,23 +184,33 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 - Android back and browser back behave naturally. Softkey "Done" navigates to `''`.
 - The menu, dialogs and toasts are overlays, not routes.
 - Scoring is reached only through game over; a direct visit redirects to `''`.
+- Each route has a `title` ("Statistics – Bubble Breaker"); unknown paths redirect to `''`.
+- `scoringGuard` lets `/scoring` through only while `GameStore.showScoring()` is true; `App` navigates there when it turns true.
 
 **Board** (`ui/board/`)
 - `board-layout.ts` holds the pure layout functions from the handoff §1–2: `cellSize` (unit-tested with the reference viewports), `cellAt` (hit testing), `bubblePlacement` and `translate`.
-- `BoardArea` (`bb-board-area`) is the white flex area. A ResizeObserver on its content box (CSS padding `0 4px 4px`) feeds the `cell` input; `cell_max` is read from the `--bb-cell-max` token. A tap on the area beside the board counts as outside (clears the selection). Until Plan 05 the area fills everything below the title bar (352×610 at 360×640, still cell 32).
+- `BoardArea` (`bb-board-area`) is the white flex area. A ResizeObserver on its content box (CSS padding `0 4px 4px`) feeds the `cell` input; `cell_max` is read from the `--bb-cell-max` token. A tap on the area beside the board counts as outside (clears the selection). It sits in the Game screen between the status strip and the softkeys.
 - `GameBoard` (`bb-board`) is one focusable `role="application"` element. Stacking order: highlight layer (z1) → balls (`@for (ball of balls(); track ball.id)` in id order, z2) → focus ring (z3) → points bubble (z4).
-- One `click` handler maps x/y to a cell and calls `GameStore.tap`. A keydown handler drives the cursor: arrows, Enter/Space, Esc, N (M arrives with the menu in Plan 05).
+- One `click` handler maps x/y to a cell and calls `GameStore.tap`. A keydown handler drives the cursor: arrows, Enter/Space, Esc, N, M (opens the menu through `Shell`).
 - The focus ring shows while the board has focus and the last input was a key or keyboard focus; a pointer press hides it. Pointer taps do not move the cursor.
 - Animations are CSS transitions switched by phase classes (`board--fall`, `board--slide`, `cell--popping`) with the motion tokens; the PhaseRunner decides when each phase starts. Popped balls leave the DOM at the fall frame.
-- The live region (`bb-live-region`, polite) is a sibling of the board. `announcer.ts` picks one message per input from a before/after snapshot of the store; game over is announced when `phase` becomes `over`. All texts live in `strings.ts`.
+- The live region (`bb-live-region`, polite) is a sibling of the board. `announcer.ts` picks one message per input from a before/after snapshot of the store; game over is announced when `phase` becomes `over`. All texts live in `strings.ts`. Every new deal is announced ("New game."), whatever started it.
 
 **Ball**
 - A `.cell` wrapper moved by `transform`, holding a `.bb-ball` element with the tokens.css recipe class (`.bb-ball--red`, `.bb-ball--g1`, and so on).
 - The shape-hint glyph is an `aria-hidden` child span, shown only on Colorful when shape hints are on.
 - The idle look never changes; highlight and focus ring are separate elements behind and above it.
 
-**Chrome**
-- Title bar, status strip, softkey bar, popup menu (roving focus, Home/End/Esc), dialog (native `<dialog>` with `showModal()` for the focus trap and Esc), toast.
+**Chrome** (`ui/chrome/`)
+- `Shell` (root service) holds the popup-menu state and the number of open modal dialogs, and knows whether the Game screen shows (`isActive('/')`). `covered = !onGame || menuOpen || dialogs > 0` reaches `GameStore.setCovered` through an effect. Closing the menu gives focus back to its opener; a menu choice that changes screen closes the menu after the navigation, so the timer never runs in between.
+- `TitleBar` (26 px banner), `StatusStrip` (Score / Selected / Time; Game screen only), `SoftkeyBar` (New Game or Done, and Menu with `aria-haspopup`/`aria-expanded`), `PopupMenu` (roving focus, wrapping arrows, Home/End, Esc/Tab; a press outside closes it), `ConfirmDialog` (native `<dialog>` with `showModal()`, `role="alertdialog"`, starts on Cancel, Esc dismisses, focus returns) and `Toast` (`role="status"`, optional action and ×; Plan 06 shows the PWA notices with it).
+- Shared button and window styles live in the global `src/styles/chrome.css`.
+- Desktop (`pointer: fine`): `App` draws a 536 × 668 window (`windowSize()` in `board-layout.ts`) with a 3 px bevel on the `#2F6468` backdrop and the key hint below it; below 708 px of height or 560 px of width the window fills the viewport and the cell follows the height.
+
+**Screens** (`ui/screens/`)
+- `GameScreen` (route `''`): status strip, board area and `PausedDialog`, a non-modal dialog over the board area (below the softkeys) shown while `GameStore.paused()`; the board area is `inert` meanwhile. Resume or Esc call `resume()` and focus the board.
+- The other screens use `Screen` (`bb-screen`): an `<h1>` that takes focus after an in-app navigation, above a scrolling white panel. `StatRows` renders the label/value rows.
+- `ScoringScreen`, `StatisticsScreen` (reset through `ConfirmDialog`), `OptionsScreen` (native radios and checkboxes bound to `SettingsStore`), `HowToPlayScreen`, `AboutScreen` (`VERSION` from `src/app/version.ts`).
 
 ## Platform ports
 

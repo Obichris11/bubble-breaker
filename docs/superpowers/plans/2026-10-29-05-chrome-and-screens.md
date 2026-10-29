@@ -3,7 +3,7 @@ aliases:
   - "Plan 05: Chrome & screens"
 tags:
   - bubble-breaker/plan
-status: ready
+status: done
 created: 2026-10-29
 ---
 # Plan 05 — Chrome & Screens Implementation Plan

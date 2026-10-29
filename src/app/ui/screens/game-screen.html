@@ -1,0 +1,7 @@
+<bb-status-strip />
+<div class="stage">
+  <bb-board-area [attr.inert]="store.paused() ? '' : null" />
+  @if (store.paused()) {
+    <bb-paused-dialog (resumeGame)="resume()" />
+  }
+</div>

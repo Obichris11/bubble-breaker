@@ -1,0 +1,19 @@
+<bb-screen [heading]="strings.stats.title">
+  <bb-stat-rows [rows]="rows()" />
+  <p class="note">{{ strings.stats.note }}</p>
+  <div>
+    <button type="button" class="bb-button" (click)="confirming.set(true)">
+      {{ strings.stats.reset }}
+    </button>
+  </div>
+</bb-screen>
+@if (confirming()) {
+  <bb-confirm-dialog
+    [heading]="strings.stats.resetTitle"
+    [message]="strings.stats.resetMessage"
+    [confirmLabel]="strings.stats.resetConfirm"
+    [cancelLabel]="strings.stats.cancel"
+    (confirm)="reset()"
+    (dismiss)="confirming.set(false)"
+  />
+}

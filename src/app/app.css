@@ -1,21 +1,25 @@
 :host {
-  display: block;
-  height: 100dvh;
-}
-.app-window {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: var(--bb-face);
-}
-.title-bar {
-  height: var(--bb-titlebar-h);
-  display: flex;
   align-items: center;
-  padding: 0 var(--bb-space-4);
-  background: linear-gradient(90deg, var(--bb-title-from), var(--bb-title-to));
-  color: var(--bb-title-text);
-  font: 700 var(--bb-fs-m) / 1 var(--bb-font);
+  justify-content: center;
+  height: 100dvh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+.frame {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+.app-window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bb-face);
 }
 .content {
   flex: 1;
@@ -23,4 +27,43 @@
   display: flex;
   flex-direction: column;
   background: var(--bb-board-bg);
+}
+.key-hint {
+  display: none;
+}
+
+/* Desktop (02-ux "Screen layout"): as wide as a 48 px board; the cell follows the height. */
+@media (pointer: fine) {
+  .frame {
+    width: min(100%, calc(var(--bb-cols) * var(--bb-cell-max) + 2 * var(--bb-board-pad)));
+  }
+}
+
+/* Room for the whole window (windowSize(): 536 × 668), its bevel and the key hint. */
+@media (pointer: fine) and (min-width: 560px) and (min-height: 708px) {
+  :host {
+    gap: 14px;
+  }
+  .frame {
+    width: auto;
+    height: auto;
+    padding: 3px;
+    background: var(--bb-face);
+    box-shadow:
+      var(--bb-bevel-out),
+      4px 4px 0 rgba(0, 0, 0, 0.35);
+  }
+  .app-window {
+    width: calc(var(--bb-cols) * var(--bb-cell-max) + 2 * var(--bb-board-pad));
+    height: calc(
+      var(--bb-titlebar-h) + var(--bb-status-h) + var(--bb-rows) * var(--bb-cell-max) +
+        var(--bb-board-pad) + var(--bb-softkey-h)
+    );
+  }
+  .key-hint {
+    display: block;
+    margin: 0;
+    color: var(--bb-title-text);
+    font-size: var(--bb-fs-s);
+  }
 }

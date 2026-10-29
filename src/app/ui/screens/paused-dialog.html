@@ -1,0 +1,19 @@
+<section
+  class="bb-window window"
+  role="dialog"
+  aria-labelledby="bb-paused-title"
+  aria-describedby="bb-paused-message"
+>
+  <h2 id="bb-paused-title" class="bb-window__title">{{ strings.paused.title }}</h2>
+  <div class="bb-window__body body">
+    <p id="bb-paused-message" class="bb-window__text">{{ strings.paused.message }}</p>
+    <button
+      #resumeButton
+      type="button"
+      class="bb-button bb-button--default"
+      (click)="resumeGame.emit()"
+    >
+      {{ strings.paused.resume }}
+    </button>
+  </div>
+</section>

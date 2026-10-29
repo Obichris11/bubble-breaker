@@ -7,6 +7,7 @@ import {
   OFF_BOARD,
   parseCellMax,
   translate,
+  windowSize,
 } from './board-layout';
 
 const GRID = { columns: 11, rows: 12 };
@@ -31,6 +32,20 @@ describe('cellSize (handoff §1)', () => {
   it('always returns a whole number, never below 0', () => {
     expect(cellSize({ width: 100.9, height: 500 }, GRID, 72)).toBe(9);
     expect(cellSize({ width: -10, height: 500 }, GRID, 72)).toBe(0);
+  });
+});
+
+describe('windowSize (desktop app window)', () => {
+  it('is 536 × 668 for 48 px cells with the 32 px desktop softkeys', () => {
+    expect(windowSize(GRID, 48, CHROME.softkeysFine)).toEqual({ width: 536, height: 668 });
+  });
+
+  it('fits exactly one 48 px board', () => {
+    const window = windowSize(GRID, 48, CHROME.softkeysFine);
+    expect(cellSize(availableSpace(window, CHROME.softkeysFine), GRID, 48)).toBe(48);
+    expect(
+      cellSize(availableSpace({ ...window, height: 667 }, CHROME.softkeysFine), GRID, 48),
+    ).toBe(47);
   });
 });
 

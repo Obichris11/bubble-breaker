@@ -127,11 +127,11 @@ describe('GameStore', () => {
     it('resets selection, cursor, pause and time', () => {
       const store = start(SLIDE);
       store.resume();
-      store.moveCursor('down');
+      store.moveCursor('up');
       platform.clock.advance(3000);
       store.newGame(1);
       expect(store.selection()).toBeNull();
-      expect(store.cursor()).toEqual({ row: 0, col: 0 });
+      expect(store.cursor()).toEqual({ row: 11, col: 5 });
       expect(store.paused()).toBe(false);
       expect(store.elapsedMs()).toBe(0);
       platform.clock.advance(1000);
@@ -400,14 +400,19 @@ describe('GameStore', () => {
       store.newGame(1);
     });
 
+    it('starts the cursor in the bottom row, middle column', () => {
+      expect(store.cursor()).toEqual({ row: 11, col: 5 });
+    });
+
     it('moves the cursor without wrapping', () => {
-      expect(store.cursor()).toEqual({ row: 0, col: 0 });
-      store.moveCursor('up');
-      store.moveCursor('left');
-      expect(store.cursor()).toEqual({ row: 0, col: 0 });
       store.moveCursor('down');
       store.moveCursor('right');
-      expect(store.cursor()).toEqual({ row: 1, col: 1 });
+      expect(store.cursor()).toEqual({ row: 11, col: 6 });
+      for (let i = 0; i < 20; i++) {
+        store.moveCursor('up');
+        store.moveCursor('left');
+      }
+      expect(store.cursor()).toEqual({ row: 0, col: 0 });
       for (let i = 0; i < 20; i++) {
         store.moveCursor('down');
         store.moveCursor('right');
@@ -417,6 +422,10 @@ describe('GameStore', () => {
 
     it('activates the cursor cell like a tap, and Esc clears the selection', () => {
       const cell = firstGroup(store.game())[0]!;
+      for (let i = 0; i < 20; i++) {
+        store.moveCursor('up');
+        store.moveCursor('left');
+      }
       for (let i = 0; i < cell.row; i++) store.moveCursor('down');
       for (let i = 0; i < cell.col; i++) store.moveCursor('right');
       store.activateCursor();
@@ -432,9 +441,9 @@ describe('GameStore', () => {
   describe('cursor group', () => {
     it('is the group under the cursor, or [] on an empty cell', () => {
       const store = start(SLIDE);
+      expect(store.cursor()).toEqual({ row: 11, col: 5 });
       expect(store.cursorGroup()).toEqual([]);
-      for (let i = 0; i < 11; i++) store.moveCursor('down');
-      for (let i = 0; i < 9; i++) store.moveCursor('right');
+      for (let i = 0; i < 4; i++) store.moveCursor('right');
       expect(store.cursorGroup()).toEqual(groupAt(store.game(), { row: 11, col: 9 }));
       expect(store.cursorGroup()).toHaveLength(2);
     });

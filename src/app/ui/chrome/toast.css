@@ -1,0 +1,39 @@
+:host {
+  display: flex;
+  align-items: center;
+  gap: var(--bb-space-4);
+  min-height: 28px;
+  padding: var(--bb-space-3) var(--bb-space-3) var(--bb-space-3) 10px;
+  background: var(--bb-tip);
+  border: 1px solid var(--bb-text);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  animation: toast-in var(--bb-dur-toast) var(--bb-ease-toast);
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+.text {
+  flex: 1;
+  margin: 0;
+  font: 400 var(--bb-fs-s) / 1.4 var(--bb-font);
+}
+.action {
+  padding: 0 14px;
+}
+.close {
+  width: var(--bb-target-min);
+  height: var(--bb-target-min);
+  margin: calc(-1 * var(--bb-space-3)) calc(-1 * var(--bb-space-3)) calc(-1 * var(--bb-space-3)) 0;
+  border: 0;
+  background: transparent;
+  color: var(--bb-text);
+  font: 700 14px / 1 var(--bb-font);
+  cursor: pointer;
+}
+.close:focus-visible {
+  outline: var(--bb-focus-chrome);
+  outline-offset: -10px;
+}

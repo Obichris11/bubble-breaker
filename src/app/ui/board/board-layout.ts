@@ -44,6 +44,18 @@ export function availableSpace(viewport: Size, softkeys: number): Size {
   };
 }
 
+/**
+ * The desktop app window around a board of `cell` px cells: 48 px cells and the 32 px
+ * `pointer: fine` softkeys give 536 × 668. `app.css` builds the same size from the tokens.
+ */
+export function windowSize(grid: Grid, cell: number, softkeys: number): Size {
+  return {
+    width: grid.columns * cell + 2 * CHROME.boardSidePad,
+    height:
+      CHROME.titleBar + CHROME.statusStrip + grid.rows * cell + CHROME.boardBottomPad + softkeys,
+  };
+}
+
 /** Handoff §1: the largest whole-pixel cell that fits `space`, capped at `cellMax`. */
 export function cellSize(space: Size, grid: Grid, cellMax: number): number {
   const fit = Math.min(space.width / grid.columns, space.height / grid.rows, cellMax);

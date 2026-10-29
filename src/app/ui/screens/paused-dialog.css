@@ -1,0 +1,15 @@
+:host {
+  position: absolute;
+  inset: 0;
+  z-index: var(--bb-z-paused);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.88);
+}
+.window {
+  width: 220px;
+}
+.body {
+  gap: var(--bb-space-5);
+}

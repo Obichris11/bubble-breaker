@@ -15,6 +15,7 @@ import { formatNumber } from '../../state/format';
 import { GameStore, type Direction } from '../../state/game.store';
 import { SettingsStore } from '../../state/settings.store';
 import { STRINGS } from '../../strings';
+import { Shell } from '../chrome/shell';
 import { announcement, gameOverText, type BoardSnapshot } from './announcer';
 import { ballLook, shapeHint } from './ball-look';
 import { bubblePlacement, cellAt, translate } from './board-layout';
@@ -59,6 +60,7 @@ export class GameBoard {
 
   protected readonly store = inject(GameStore);
   private readonly settings = inject(SettingsStore);
+  private readonly shell = inject(Shell);
   private readonly boardRef = viewChild.required<ElementRef<HTMLElement>>('board');
   protected readonly strings = STRINGS;
 
@@ -129,6 +131,15 @@ export class GameBoard {
   );
 
   constructor() {
+    // "New game." for every deal, also from the softkey or the menu; N announces it in `act`.
+    let dealt = this.store.gameId();
+    effect(() => {
+      const gameId = this.store.gameId();
+      if (gameId !== dealt) {
+        dealt = gameId;
+        this.message.set(STRINGS.board.newGame);
+      }
+    });
     effect(() => {
       if (this.store.phase() === 'over') {
         const score = untracked(() => this.store.game().score);
@@ -182,6 +193,10 @@ export class GameBoard {
         this.act(() => {
           this.store.newGame();
         });
+        return;
+      case 'm':
+      case 'M':
+        this.shell.toggleMenu(this.boardRef().nativeElement);
         return;
     }
   }

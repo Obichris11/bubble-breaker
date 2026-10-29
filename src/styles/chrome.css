@@ -1,0 +1,57 @@
+/* Shared chrome controls from the Component Sheet (§4). Components add layout only. */
+.bb-button {
+  min-height: var(--bb-target-min);
+  margin: 0;
+  padding: 0 var(--bb-space-6);
+  border: 0;
+  border-radius: var(--bb-radius);
+  background: var(--bb-face);
+  box-shadow: var(--bb-bevel-out);
+  color: var(--bb-text);
+  font: 400 var(--bb-fs-m) / 1 var(--bb-font);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bb-button:active {
+  padding-top: 2px;
+  box-shadow: var(--bb-bevel-in);
+}
+.bb-button:focus-visible {
+  outline: var(--bb-focus-chrome);
+  outline-offset: -6px;
+}
+/* Default button: bold label and a 1 px black ring (Cancel, Resume, New Game). */
+.bb-button--default {
+  font-weight: 700;
+  box-shadow: var(--bb-default-ring), var(--bb-bevel-out);
+}
+.bb-button--default:active {
+  box-shadow: var(--bb-default-ring), var(--bb-bevel-in);
+}
+
+/* Dialog window: bevelled face with a navy title bar. */
+.bb-window {
+  padding: 3px;
+  background: var(--bb-face);
+  box-shadow: var(--bb-bevel-out), var(--bb-popup-shadow);
+}
+.bb-window__title {
+  display: flex;
+  align-items: center;
+  height: 22px;
+  margin: 0;
+  padding: 0 var(--bb-space-3);
+  background: linear-gradient(90deg, var(--bb-title-from), var(--bb-title-to));
+  color: var(--bb-title-text);
+  font: 700 var(--bb-fs-s) / 1 var(--bb-font);
+}
+.bb-window__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px 10px 10px;
+}
+.bb-window__text {
+  margin: 0;
+  font: 400 var(--bb-fs-m) / 1.45 var(--bb-font);
+}
