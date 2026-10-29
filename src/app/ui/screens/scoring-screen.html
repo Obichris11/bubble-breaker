@@ -1,0 +1,14 @@
+<bb-screen [heading]="strings.scoring.title">
+  <div class="result">
+    <p class="muted">{{ strings.scoring.noGroups }}</p>
+    <p class="score">{{ score() }}</p>
+    @if (stats.newHigh()) {
+      <p class="badge">{{ strings.scoring.newHigh }}</p>
+    }
+    <p class="muted">{{ time() }}</p>
+  </div>
+  <bb-stat-rows [rows]="rows()" />
+  <button type="button" class="bb-button bb-button--default new-game" (click)="newGame()">
+    {{ strings.scoring.newGame }}
+  </button>
+</bb-screen>

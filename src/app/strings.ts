@@ -67,6 +67,13 @@ export const STRINGS = {
     resetConfirm: 'Reset',
     cancel: 'Cancel',
   },
+  scoring: {
+    title: 'Game over',
+    noGroups: 'No groups left. Your score',
+    newHigh: 'New high score',
+    time: (time: string) => `Time ${time} (not scored)`,
+    newGame: 'New Game',
+  },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
     label:

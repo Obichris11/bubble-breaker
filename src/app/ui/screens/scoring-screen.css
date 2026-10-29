@@ -1,0 +1,35 @@
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+p {
+  margin: 0;
+}
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--bb-space-2);
+  padding: 10px 0 var(--bb-space-3);
+}
+.muted {
+  color: var(--bb-text-muted);
+  font-size: var(--bb-fs-s);
+}
+.score {
+  font: 700 var(--bb-fs-score) / 1.1 var(--bb-font);
+  font-variant-numeric: tabular-nums;
+}
+.badge {
+  padding: 1px var(--bb-space-4);
+  background: var(--bb-tip);
+  border: 1px solid var(--bb-text);
+  font-size: var(--bb-fs-s);
+  font-weight: 700;
+}
+.new-game {
+  flex: none;
+  margin-top: auto;
+}
