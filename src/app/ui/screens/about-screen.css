@@ -1,0 +1,30 @@
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+p {
+  margin: 0;
+}
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: var(--bb-space-3) 0;
+}
+.logo {
+  display: grid;
+  grid-template-columns: repeat(2, 20px);
+  gap: 1px;
+}
+.logo .bb-ball {
+  width: 20px;
+}
+.name {
+  font-weight: 700;
+}
+.note {
+  color: var(--bb-text-muted);
+  font-size: var(--bb-fs-s);
+}

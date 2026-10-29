@@ -20,6 +20,25 @@ export const STRINGS = {
     /** `aria-label` of the × button on a notice. */
     dismiss: 'Dismiss',
   },
+  howToPlay: {
+    title: 'How to Play',
+    select:
+      'Tap a group of two or more touching balls of the same color. The group is highlighted and shows the points it is worth.',
+    burst:
+      'Tap the group again to burst it. Balls above fall down, and empty columns close up to the right.',
+    formula: 'Points = n × (n − 1)',
+    balls: (count: number) => `${String(count)} balls`,
+    plan: 'Big groups score far more, so plan ahead. The game ends when no two touching balls share a color. There is no undo.',
+    keyboard:
+      'Keyboard: arrow keys move, Enter or Space selects and bursts, Esc clears the selection, N starts a new game and M opens the menu.',
+  },
+  about: {
+    title: 'About',
+    version: (version: string) => `Version ${version}`,
+    tribute:
+      'A tribute to the pocket-computer puzzle classic Jawbreaker by oopdreams. Not affiliated with any original publisher.',
+    privacy: 'Works offline once loaded. No accounts, no tracking. Statistics stay on this device.',
+  },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
     label:

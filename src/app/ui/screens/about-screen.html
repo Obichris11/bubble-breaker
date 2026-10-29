@@ -1,0 +1,15 @@
+<bb-screen [heading]="strings.about.title">
+  <div class="identity">
+    <div class="logo" aria-hidden="true">
+      @for (color of logo; track color) {
+        <div class="bb-ball" [class]="'bb-ball--' + color"></div>
+      }
+    </div>
+    <div>
+      <p class="name">{{ strings.appTitle }}</p>
+      <p class="note">{{ version }}</p>
+    </div>
+  </div>
+  <p>{{ strings.about.tribute }}</p>
+  <p class="note">{{ strings.about.privacy }}</p>
+</bb-screen>

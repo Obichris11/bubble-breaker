@@ -1,0 +1,42 @@
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+p {
+  margin: 0;
+}
+.formula {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bb-space-2);
+  padding: var(--bb-space-4) 10px;
+  background: #f4f3ef;
+  box-shadow:
+    inset 1px 1px 0 var(--bb-shadow),
+    inset -1px -1px 0 var(--bb-hilight);
+}
+.formula__title {
+  font-weight: 700;
+}
+.points {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  gap: var(--bb-space-1) var(--bb-space-6);
+  margin: 0;
+  font-size: var(--bb-fs-s);
+  font-variant-numeric: tabular-nums;
+}
+.pair {
+  display: flex;
+  gap: var(--bb-space-6);
+}
+dd {
+  margin: 0;
+  font-weight: 700;
+}
+.note {
+  color: var(--bb-text-muted);
+  font-size: var(--bb-fs-s);
+}
