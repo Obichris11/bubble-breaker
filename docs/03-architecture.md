@@ -64,7 +64,7 @@ src/
                      statistics-screen options-screen how-to-play-screen about-screen
 ```
 
-Outside `src/`: `ngsw-config.json` (service-worker asset groups), `public/manifest.webmanifest` and `public/icons/` (drawn by `scripts/make-icons.mjs`), and `scripts/check-pwa.mjs` (CI build check).
+Outside `src/`: `ngsw-config.json` (service-worker asset groups), `public/manifest.webmanifest` and `public/icons/` (drawn by `scripts/make-icons.mjs`), `scripts/check-pwa.mjs` and `scripts/check-container.mjs` (CI checks of the build and of the running image), `Dockerfile` + `nginx/default.conf` (the image), `deploy/` (`compose.yml`, `update.sh` + `update.test.sh` for the NAS), and `release-please-config.json` (releases).
 
 ## Engine (pure TypeScript)
 
