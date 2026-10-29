@@ -1,0 +1,18 @@
+<div class="menu" role="menu" [attr.aria-label]="label()">
+  @for (item of items(); track item.id; let index = $index) {
+    @if (item.separatorBefore) {
+      <div class="separator" role="separator"></div>
+    }
+    <button
+      #row
+      type="button"
+      role="menuitem"
+      class="item"
+      tabindex="-1"
+      (pointerenter)="focusAt(index)"
+      (click)="choose.emit(item.id)"
+    >
+      {{ item.label }}
+    </button>
+  }
+</div>
