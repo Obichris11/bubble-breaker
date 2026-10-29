@@ -49,6 +49,24 @@ export const STRINGS = {
     shapeHintsNote: 'Adds a small symbol to each color. Off by default.',
     sound: 'Sound',
   },
+  stats: {
+    title: 'Statistics',
+    lastGame: 'Last Game',
+    lastGameValue: (score: string, time: string) => `${score} in ${time}`,
+    /** "Last Game" before any game is finished (or after a reset). */
+    none: '–',
+    high: 'High Score',
+    average: 'Average Score',
+    total: 'Total Score',
+    played: 'Games Played',
+    note: 'Statistics are stored on this device only.',
+    reset: 'Reset statistics…',
+    resetTitle: 'Reset statistics',
+    resetMessage:
+      'Clear high score, average score, total score and games played? This cannot be undone.',
+    resetConfirm: 'Reset',
+    cancel: 'Cancel',
+  },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
     label:
