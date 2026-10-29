@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { AudioPort, BrowserAudio } from './audio';
 import { BrowserClock, ClockPort } from './clock';
 import { providePlatform } from './provide-platform';
+import { BrowserPwa, PwaPort } from './pwa';
 import { BrowserReducedMotion, ReducedMotionPort } from './reduced-motion';
 import { BrowserStorage, StoragePort } from './storage';
 import { BrowserVisibility, VisibilityPort } from './visibility';
@@ -17,6 +18,14 @@ describe('providePlatform', () => {
     expect(TestBed.inject(VisibilityPort)).toBeInstanceOf(BrowserVisibility);
     expect(TestBed.inject(ReducedMotionPort)).toBeInstanceOf(BrowserReducedMotion);
     expect(TestBed.inject(AudioPort)).toBeInstanceOf(BrowserAudio);
+    expect(TestBed.inject(PwaPort)).toBeInstanceOf(BrowserPwa);
+  });
+
+  it('keeps the service worker off in tests and dev builds', () => {
+    const pwa = TestBed.inject(PwaPort);
+    expect(pwa.updateAvailable()).toBe(false);
+    expect(pwa.offlineReady()).toBe(false);
+    expect(pwa.installAvailable()).toBe(false);
   });
 
   it('uses localStorage', () => {
