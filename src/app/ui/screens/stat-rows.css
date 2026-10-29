@@ -1,0 +1,17 @@
+.rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 30px;
+  border-bottom: 1px solid var(--bb-face);
+  font-variant-numeric: tabular-nums;
+}
+dd {
+  margin: 0;
+  font-weight: 700;
+}

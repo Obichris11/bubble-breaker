@@ -1,0 +1,22 @@
+:host {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px var(--bb-space-5) var(--bb-space-5);
+  background: var(--bb-field);
+  box-shadow: inset 1px 1px 0 var(--bb-shadow);
+  font: 400 var(--bb-fs-m) / 1.45 var(--bb-font);
+}
+.heading {
+  margin: 0;
+  padding-bottom: var(--bb-space-2);
+  border-bottom: 1px solid var(--bb-accent);
+  color: var(--bb-accent);
+  font: 700 var(--bb-fs-m) / 1.2 var(--bb-font);
+}
+.heading:focus {
+  outline: none;
+}
