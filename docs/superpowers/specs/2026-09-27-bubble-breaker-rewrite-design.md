@@ -68,7 +68,7 @@ Rebuild Bubble Breaker from scratch as:
 | Gates | Coverage engine 95 / state 90 / ui 80 / overall 80; LH Perf ≥ 90, A11y 100; bundle ≤ 450 kB raw | 04 |
 | Repo | Public, `main`, squash merges, ruleset with required checks | 05 |
 | Release | release-please PR → tag → GHCR `X.Y.Z / X.Y / latest / sha` → Trivy | 05 |
-| Runtime | `nginx-unprivileged`, read-only, localhost-bound, behind DSM reverse proxy | 06 |
+| Runtime | `nginx-unprivileged` alpine-slim, read-only, localhost-bound, behind DSM reverse proxy | 06 |
 | Updater | DSM Task Scheduler, `update.sh` every 15 min, health-gated, email on failure | 06 |
 
 ## Traceability: legacy problem → prevention
@@ -122,10 +122,10 @@ Rebuild Bubble Breaker from scratch as:
 
 | Item | Fallback |
 |---|---|
-| Angular `security.autoCsp` works with `script-src 'self'` | Disable `inlineCritical` |
+| Angular `security.autoCsp` works with `script-src 'self'` | Disable `inlineCritical` — Plan 07: autoCsp adds inline scripts the header blocks; `inlineCritical` is off |
 | `@lhci/cli` works with current Chrome/Lighthouse 13 | Run `lighthouse` CLI with same assertions |
-| `nginx-unprivileged` writable paths under read-only root | Add tmpfs mounts |
-| DSM docker binary path, `docker compose` v2 present | Use `docker-compose` binary |
+| `nginx-unprivileged` writable paths under read-only root | Add tmpfs mounts — Plan 07: a tmpfs on `/tmp` is enough |
+| DSM docker binary path, `docker compose` v2 present | Use `docker-compose` binary — `update.sh` falls back by itself; confirm on the NAS (Plan 07 C1) |
 | Noto Sans subset + self-hosting within bundle budget | Single weight + system fallback |
 | Legacy sound synthesis port quality | Re-tune in playtest |
 

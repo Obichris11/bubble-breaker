@@ -1,0 +1,20 @@
+# Bubble Breaker on the NAS (06-deployment "Runtime"). Lives in /volume1/docker/bubble-breaker/
+# next to update.sh. To roll back, pin `image:` to a released X.Y.Z instead of latest.
+name: bubble-breaker
+services:
+  bubble-breaker:
+    image: ghcr.io/obichris11/bubble-breaker:latest
+    container_name: bubble-breaker
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:18080:8080' # only the DSM reverse proxy can reach it
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 64m
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options: { max-size: '1m', max-file: '3' }

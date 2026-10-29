@@ -54,3 +54,31 @@ jobs:
           name: dist
           path: dist/bubble-breaker/browser/
           retention-days: 7
+
+  docker:
+    name: docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ACTIONLINT: rhysd/actionlint:1.7.12@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+      - name: Lint workflows
+        run: docker run --rm -v "$PWD:/repo" -w /repo "$ACTIONLINT" -color
+      - name: Lint and test the NAS updater
+        run: |
+          docker run --rm -v "$PWD:/repo" -w /repo --entrypoint shellcheck "$ACTIONLINT" deploy/*.sh
+          npm run test:deploy
+      - name: Build the image
+        run: docker build --pull -t ghcr.io/obichris11/bubble-breaker:latest .
+      - name: Start it with deploy/compose.yml
+        run: docker compose -f deploy/compose.yml up -d --pull never --wait --wait-timeout 90
+      - name: Check health, caching, routing and headers
+        run: npm run check:container
+      - name: Container logs
+        if: failure()
+        run: docker compose -f deploy/compose.yml logs

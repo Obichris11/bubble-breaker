@@ -1,0 +1,16 @@
+# Only what `npm ci` and `ng build` need goes into the build context (06-deployment).
+.git
+.github
+.angular
+.claude
+.husky
+.vscode
+coverage
+deploy
+dist
+docs
+e2e
+node_modules
+*.md
+Dockerfile
+.dockerignore

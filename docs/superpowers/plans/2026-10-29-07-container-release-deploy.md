@@ -3,7 +3,7 @@ aliases:
   - "Plan 07: Container, release & deploy"
 tags:
   - bubble-breaker/plan
-status: ready
+status: in-progress
 created: 2026-10-29
 ---
 # Plan 07 — Container, Release & Deploy Implementation Plan
