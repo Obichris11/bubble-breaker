@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "release-type": "node",
+  "include-component-in-tag": false,
+  "initial-version": "2.0.0",
+  "bootstrap-sha": "f16fc4d4add06b8ac854243b11985fd3d61941b3",
+  "packages": {
+    ".": {
+      "package-name": "bubble-breaker",
+      "changelog-path": "CHANGELOG.md",
+      "extra-files": ["src/app/version.ts"]
+    }
+  }
+}
