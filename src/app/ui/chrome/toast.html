@@ -1,0 +1,17 @@
+<p class="text">
+  <strong>{{ heading() }}</strong>
+  {{ detail() }}
+</p>
+@if (actionLabel(); as label) {
+  <button type="button" class="bb-button action" (click)="act.emit()">{{ label }}</button>
+}
+@if (dismissible()) {
+  <button
+    type="button"
+    class="close"
+    [attr.aria-label]="strings.toast.dismiss"
+    (click)="dismiss.emit()"
+  >
+    ×
+  </button>
+}

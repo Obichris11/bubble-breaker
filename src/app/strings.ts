@@ -16,6 +16,10 @@ export const STRINGS = {
     done: 'Done',
     menu: 'Menu',
   },
+  toast: {
+    /** `aria-label` of the × button on a notice. */
+    dismiss: 'Dismiss',
+  },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
     label:
