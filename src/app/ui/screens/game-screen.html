@@ -1,5 +1,6 @@
 <bb-status-strip />
 <div class="stage">
+  <bb-pwa-notice [attr.inert]="store.paused() ? '' : null" (handBack)="focusBoard()" />
   <bb-board-area [attr.inert]="store.paused() ? '' : null" />
   @if (store.paused()) {
     <bb-paused-dialog (resumeGame)="resume()" />

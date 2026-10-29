@@ -53,6 +53,8 @@ Lint bans: `any` (explicit and implicit), non-null assertions in `src/` (allowed
 
 jsdom 30 lacks `HTMLDialogElement.showModal()`/`close()` and `inert`: `src/test-setup.ts` adds a stand-in that only toggles `open` and fires `close`, and `inert` is bound as an attribute. The focus trap, Esc and inertness are checked in a browser (Plan 05 browser check, Plan 08 e2e).
 
+jsdom has no service worker, Cache Storage or `beforeinstallprompt` either: `BrowserPwa` is tested against fakes of `SwUpdate` and of the page, and the real flows (first cache, offline reload, update, install offer) are checked in a browser against a production build (Plan 06 browser check, Plan 08 e2e).
+
 Test seed hook: the app reads `?seed=<uint32>` **only** when `environment.testHooks` is true (dev + e2e builds). The production build ignores it.
 
 ## Gates
@@ -67,6 +69,7 @@ Test seed hook: the app reads `?seed=<uint32>` **only** when `environment.testHo
 | Coverage overall | ≥ 80 % lines, statements, functions & branches | CI (`npm run test:ci`) |
 | E2E + axe | all pass, 0 serious/critical | CI |
 | Bundle budget (angular.json) | initial ≤ 350 kB warn / 450 kB error (raw size, as Angular measures it; Lighthouse covers transfer speed); component styles ≤ 4 kB warn / 8 kB error | build |
+| PWA build check | `npm run check:pwa`: manifest fields, 192/512/maskable PNG icons, manifest link and theme colour in `index.html`, no ngsw data groups, prefetched app shell and fonts | CI (`build`) |
 | Lighthouse (mobile, simulated throttling) | Performance ≥ 90, Accessibility = 100, Best Practices ≥ 95, SEO ≥ 90 | CI on PR |
 | Visual regression | ≤ 0.1 % pixel diff | CI |
 

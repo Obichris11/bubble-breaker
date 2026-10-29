@@ -23,6 +23,23 @@
 .action {
   padding: 0 14px;
 }
+/* Install notice (Game Screen prototype): text, then "Not now" and the default button. */
+:host(.toast--stacked) {
+  flex-direction: column;
+  align-items: stretch;
+  padding: var(--bb-space-4) 10px;
+}
+:host(.toast--stacked) strong {
+  display: block;
+}
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--bb-space-3);
+}
+.buttons .bb-button--default {
+  padding: 0 18px;
+}
 .close {
   width: var(--bb-target-min);
   height: var(--bb-target-min);

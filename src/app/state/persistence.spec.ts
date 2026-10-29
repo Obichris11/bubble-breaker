@@ -28,6 +28,25 @@ describe('storage keys', () => {
 
 describe('isSettings', () => {
   it('accepts valid settings', () => {
+    expect(
+      isSettings({
+        breakerSet: 'greyscale',
+        shapeHints: true,
+        sound: false,
+        installDismissedAt: 5,
+      }),
+    ).toBe(true);
+    expect(
+      isSettings({
+        breakerSet: 'colorful',
+        shapeHints: false,
+        sound: true,
+        installDismissedAt: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('accepts settings saved before the install notice existed', () => {
     expect(isSettings({ breakerSet: 'greyscale', shapeHints: true, sound: false })).toBe(true);
   });
 
@@ -38,6 +57,14 @@ describe('isSettings', () => {
     ['an unknown breaker set', { breakerSet: 'neon', shapeHints: false, sound: true }],
     ['a non-boolean flag', { breakerSet: 'colorful', shapeHints: 'no', sound: true }],
     ['a missing field', { breakerSet: 'colorful', shapeHints: false }],
+    [
+      'a negative dismissal time',
+      { breakerSet: 'colorful', shapeHints: false, sound: true, installDismissedAt: -1 },
+    ],
+    [
+      'a text dismissal time',
+      { breakerSet: 'colorful', shapeHints: false, sound: true, installDismissedAt: 'today' },
+    ],
   ])('rejects %s', (_, value) => {
     expect(isSettings(value)).toBe(false);
   });
@@ -137,8 +164,23 @@ describe('load and save', () => {
     expect(loadGame(storage)).toBeNull();
   });
 
+  it('fills in the install dismissal for settings saved before it existed', () => {
+    storage.set(KEYS.settings, { breakerSet: 'greyscale', shapeHints: true, sound: false });
+    expect(loadSettings(storage)).toEqual({
+      breakerSet: 'greyscale',
+      shapeHints: true,
+      sound: false,
+      installDismissedAt: null,
+    });
+  });
+
   it('round-trips settings and stats', () => {
-    const settings = { breakerSet: 'greyscale', shapeHints: true, sound: false } as const;
+    const settings = {
+      breakerSet: 'greyscale',
+      shapeHints: true,
+      sound: false,
+      installDismissedAt: 1_700_000_000_000,
+    } as const;
     const stats = { ...DEFAULT_STATS, high: 12, total: 12, played: 1 };
     saveSettings(storage, settings);
     saveStats(storage, stats);

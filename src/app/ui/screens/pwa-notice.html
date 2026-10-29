@@ -1,0 +1,33 @@
+@switch (pwa.notice()) {
+  @case ('update') {
+    <bb-toast
+      animate.leave="toast-leave"
+      [heading]="strings.pwa.updateTitle"
+      [detail]="strings.pwa.updateText"
+      [actionLabel]="strings.pwa.reload"
+      [dismissible]="true"
+      (act)="pwa.reload()"
+      (dismiss)="pwa.dismiss()"
+    />
+  }
+  @case ('offline') {
+    <bb-toast
+      animate.leave="toast-leave"
+      [heading]="strings.pwa.offlineTitle"
+      [detail]="strings.pwa.offlineText"
+      [dismissible]="true"
+      (dismiss)="pwa.dismiss()"
+    />
+  }
+  @case ('install') {
+    <bb-toast
+      animate.leave="toast-leave"
+      [heading]="strings.pwa.installTitle"
+      [detail]="strings.pwa.installText"
+      [actionLabel]="strings.pwa.install"
+      [dismissLabel]="strings.pwa.notNow"
+      (act)="pwa.install()"
+      (dismiss)="pwa.notNow()"
+    />
+  }
+}

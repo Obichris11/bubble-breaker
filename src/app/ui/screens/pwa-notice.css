@@ -1,0 +1,18 @@
+/* In the flow above the board area: the board gives up the height, never its balls. */
+:host {
+  position: relative;
+  z-index: var(--bb-z-toast);
+  display: block;
+}
+bb-toast {
+  margin: var(--bb-space-4) var(--bb-space-3) 0;
+}
+.toast-leave {
+  animation: toast-out var(--bb-dur-toast) var(--bb-ease-toast) forwards;
+}
+@keyframes toast-out {
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

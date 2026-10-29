@@ -60,6 +60,7 @@ describe('OptionsScreen', () => {
       breakerSet: 'colorful',
       shapeHints: true,
       sound: false,
+      installDismissedAt: null,
     });
     expect(hints()).toBeChecked();
   });

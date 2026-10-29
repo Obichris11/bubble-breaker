@@ -90,7 +90,7 @@ Rebuild Bubble Breaker from scratch as:
 | Docker ships prebuilt `dist` | Multi-stage build (06) | CI `docker` job |
 | No SW cache rules | `no-cache` SW files, immutable hashed assets (06) | CI `docker` header asserts |
 | Fake `/api` data groups in ngsw | Asset groups only (06) | Config review |
-| Incomplete manifest | 192/512 + maskable, tokens colors (06) | E2E installability check |
+| Incomplete manifest | 192/512 + maskable, tokens colors (06) | `check:pwa` in CI (Plan 06); E2E installability check (Plan 08) |
 | README claims unimplemented features | Docs describe actual state; DoD item 1 (04) | PR review |
 | No CI | Workflows in 05 | Required checks |
 

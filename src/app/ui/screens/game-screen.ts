@@ -11,15 +11,16 @@ import { GameStore } from '../../state/game.store';
 import { BoardArea } from '../board/board-area';
 import { StatusStrip } from '../chrome/status-strip';
 import { PausedDialog } from './paused-dialog';
+import { PwaNotice } from './pwa-notice';
 
 /**
- * Route `''`: status strip, then the board area between it and the softkeys. While the game is
- * Paused the board is inert under the Paused dialog. Coming back from another screen puts
- * focus on the board.
+ * Route `''`: status strip, then the PWA notice and the board area between it and the
+ * softkeys. While the game is Paused both are inert under the Paused dialog. Coming back from
+ * another screen puts focus on the board.
  */
 @Component({
   selector: 'bb-game-screen',
-  imports: [BoardArea, PausedDialog, StatusStrip],
+  imports: [BoardArea, PausedDialog, PwaNotice, StatusStrip],
   templateUrl: './game-screen.html',
   styleUrl: './game-screen.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,7 +51,7 @@ export class GameScreen {
     );
   }
 
-  private focusBoard(): void {
+  protected focusBoard(): void {
     this.host.nativeElement.querySelector<HTMLElement>('[role="application"]')?.focus();
   }
 }

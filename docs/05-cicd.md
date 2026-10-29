@@ -57,7 +57,7 @@ All workflows follow these rules:
 | Job | Needs | Steps | Artifacts |
 |---|---|---|---|
 | `quality` | – | lint · `prettier --check` · typecheck · unit+component tests with coverage thresholds | coverage report |
-| `build` | – | `ng build` (production, budgets enforced) | `dist/` |
+| `build` | – | `ng build` (production, budgets enforced) · `npm run check:pwa` | `dist/` |
 | `e2e` | build | Playwright (Chromium + WebKit, desktop + mobile) against static-served `dist/` built with test hooks · axe · visual snapshots | Playwright report + traces on failure |
 | `lighthouse` | build | Lighthouse CI, mobile, assertions from 04 | LH report |
 | `docker` | build | `docker build` smoke test: container starts, `/health` 200, `/` serves index, SW files send `no-cache` | – |

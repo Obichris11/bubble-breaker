@@ -1,6 +1,7 @@
 import { signal, type Provider } from '@angular/core';
 import { AudioPort, type Sound } from '../audio';
 import { ClockPort, type TimerId } from '../clock';
+import { PwaPort } from '../pwa';
 import { ReducedMotionPort } from '../reduced-motion';
 import { StoragePort } from '../storage';
 import { VisibilityPort } from '../visibility';
@@ -12,12 +13,19 @@ interface PendingTimer {
 
 /** Manual clock: time only moves in `advance()`, which fires due timers in order. */
 export class FakeClock implements ClockPort {
+  /** `epochMs()` at time 0: 2026-10-01T00:00:00Z. */
+  static readonly EPOCH = Date.UTC(2026, 9, 1);
+
   private time = 0;
   private nextId = 1;
   private readonly timers = new Map<TimerId, PendingTimer>();
 
   now(): number {
     return this.time;
+  }
+
+  epochMs(): number {
+    return FakeClock.EPOCH + this.time;
   }
 
   setTimeout(callback: () => void, ms: number): TimerId {
@@ -99,12 +107,44 @@ export class FakeReducedMotion implements ReducedMotionPort {
   readonly reduced = signal(false);
 }
 
+/** Writable PWA signals; counts the calls the state layer makes. */
+export class FakePwa implements PwaPort {
+  readonly updateAvailable = signal(false);
+  readonly offlineReady = signal(false);
+  readonly installAvailable = signal(false);
+  readonly unrecoverable = signal(false);
+  /** What the next `install()` resolves to: true = the player accepted the browser prompt. */
+  installAccepted = true;
+  /** When set, the next `install()` rejects with it (the browser could not show the prompt). */
+  installError: Error | null = null;
+  updateChecks = 0;
+  installs = 0;
+  reloads = 0;
+
+  checkForUpdate(): void {
+    this.updateChecks++;
+  }
+
+  install(): Promise<boolean> {
+    this.installs++;
+    this.installAvailable.set(false);
+    return this.installError === null
+      ? Promise.resolve(this.installAccepted)
+      : Promise.reject(this.installError);
+  }
+
+  reload(): void {
+    this.reloads++;
+  }
+}
+
 export interface FakePlatform {
   readonly clock: FakeClock;
   readonly storage: FakeStorage;
   readonly audio: FakeAudio;
   readonly visibility: FakeVisibility;
   readonly motion: FakeReducedMotion;
+  readonly pwa: FakePwa;
   readonly providers: Provider[];
 }
 
@@ -115,18 +155,21 @@ export function createFakePlatform(): FakePlatform {
   const audio = new FakeAudio();
   const visibility = new FakeVisibility();
   const motion = new FakeReducedMotion();
+  const pwa = new FakePwa();
   return {
     clock,
     storage,
     audio,
     visibility,
     motion,
+    pwa,
     providers: [
       { provide: ClockPort, useValue: clock },
       { provide: StoragePort, useValue: storage },
       { provide: AudioPort, useValue: audio },
       { provide: VisibilityPort, useValue: visibility },
       { provide: ReducedMotionPort, useValue: motion },
+      { provide: PwaPort, useValue: pwa },
     ],
   };
 }
