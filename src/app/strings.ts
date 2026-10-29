@@ -39,6 +39,16 @@ export const STRINGS = {
       'A tribute to the pocket-computer puzzle classic Jawbreaker by oopdreams. Not affiliated with any original publisher.',
     privacy: 'Works offline once loaded. No accounts, no tracking. Statistics stay on this device.',
   },
+  options: {
+    title: 'Options',
+    breakerSet: 'Breaker Set',
+    colorful: 'Colorful Breakers',
+    greyscale: 'Greyscale Breakers',
+    accessibility: 'Accessibility and sound',
+    shapeHints: 'Shape hints on Colorful Breakers',
+    shapeHintsNote: 'Adds a small symbol to each color. Off by default.',
+    sound: 'Sound',
+  },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
     label:

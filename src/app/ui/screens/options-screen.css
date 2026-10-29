@@ -1,0 +1,77 @@
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.options {
+  gap: var(--bb-space-3);
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  margin: var(--bb-space-3) 0 0;
+  padding: 0;
+  border: 0;
+}
+.label {
+  padding: 0;
+  font: 700 var(--bb-fs-s) / 1.4 var(--bb-font);
+}
+.row {
+  min-height: var(--bb-target-min);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+.row:has(.control:focus-visible) {
+  outline: var(--bb-focus-chrome);
+  outline-offset: -2px;
+}
+.row--disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.control {
+  appearance: none;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  background: var(--bb-field) center / 100% no-repeat;
+  box-shadow: var(--bb-field-sunken);
+  cursor: inherit;
+}
+.control:focus {
+  outline: none;
+}
+.control--radio {
+  border-radius: 50%;
+}
+.control--radio:checked {
+  background-image: radial-gradient(circle, var(--bb-text) 0 2.5px, transparent 3px);
+}
+.control:not(.control--radio):checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 15'%3E%3Cpath d='M4 7.5 6.5 10 11 4.5' fill='none' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E");
+}
+.control:disabled {
+  background-color: var(--bb-face);
+}
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.note {
+  color: var(--bb-text-muted);
+  font-size: var(--bb-fs-s);
+}
+.preview {
+  display: flex;
+  gap: 1px;
+}
+.preview .bb-ball {
+  width: 19px;
+}

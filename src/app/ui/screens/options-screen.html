@@ -1,0 +1,50 @@
+<bb-screen class="options" [heading]="strings.options.title">
+  <fieldset class="group">
+    <legend class="label">{{ strings.options.breakerSet }}</legend>
+    @for (option of sets; track option.set) {
+      <label class="row">
+        <input
+          type="radio"
+          name="breaker-set"
+          class="control control--radio"
+          [checked]="settings.breakerSet() === option.set"
+          (change)="settings.setBreakerSet(option.set)"
+        />
+        <span class="text">{{ option.label }}</span>
+        <span class="preview" aria-hidden="true">
+          @for (look of option.looks; track look) {
+            <span class="bb-ball" [class]="look"></span>
+          }
+        </span>
+      </label>
+    }
+  </fieldset>
+  <fieldset class="group">
+    <legend class="label">{{ strings.options.accessibility }}</legend>
+    <label class="row" [class.row--disabled]="greyscale()">
+      <input
+        #hints
+        type="checkbox"
+        class="control"
+        aria-describedby="shape-hints-note"
+        [checked]="settings.shapeHints()"
+        [disabled]="greyscale()"
+        (change)="settings.setShapeHints(hints.checked)"
+      />
+      <span class="text">
+        {{ strings.options.shapeHints }}
+        <span id="shape-hints-note" class="note">{{ strings.options.shapeHintsNote }}</span>
+      </span>
+    </label>
+    <label class="row">
+      <input
+        #sound
+        type="checkbox"
+        class="control"
+        [checked]="settings.sound()"
+        (change)="settings.setSound(sound.checked)"
+      />
+      <span class="text">{{ strings.options.sound }}</span>
+    </label>
+  </fieldset>
+</bb-screen>
