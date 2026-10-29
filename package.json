@@ -14,6 +14,8 @@
     "test:watch": "ng test",
     "test:ci": "ng test --watch=false --coverage",
     "check": "npm run lint && npm run format:check && npm run typecheck && npm test",
+    "check:pwa": "node scripts/check-pwa.mjs dist/bubble-breaker/browser",
+    "icons": "node scripts/make-icons.mjs",
     "prepare": "husky"
   },
   "private": true,
