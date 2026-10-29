@@ -80,9 +80,9 @@ All workflows follow these rules:
    2. Build with `docker/build-push-action` for `linux/amd64` only (DS224+ is x86-64), with OCI labels (source, version, revision). The Dockerfile builds the app itself (multi-stage, see 06).
    3. Push only `:sha-<short>`, with `provenance: mode=max` and `sbom: true`.
    4. Trivy (`aquasecurity/trivy-action`, Trivy 0.70) scans that digest. It fails on fixable `CRITICAL`/`HIGH`; the SARIF goes to code scanning (category `trivy-image`).
-   5. Only a clean digest gets `X.Y.Z`, `X.Y` and `latest` (`docker buildx imagetools create`), then `actions/attest-build-provenance`. A failed scan leaves the GitHub Release but not `:latest`; fix forward with a patch release.
+   5. Only a clean digest gets `X.Y.Z`, `X.Y` and `latest` (`docker buildx imagetools create`), then `actions/attest-build-provenance`. A failed scan leaves the GitHub Release and tag without an image (release-please publishes them first); that version never gets one. Fix forward: the base-image bump or fix ships as the next patch release.
 3. The NAS picks up `:latest` (see 06).
-4. `concurrency: release`, never cancelled.
+4. `concurrency: release`, never cancelled. Pushes during a run queue, but GitHub keeps only the newest waiting run; it still sees every merged commit.
 
 > [!WARNING]
 > **Token caveat:** PRs opened with `GITHUB_TOKEN` do not trigger other workflows. The release PR would therefore never get its required checks.

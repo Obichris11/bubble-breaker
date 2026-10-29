@@ -6,7 +6,8 @@ on:
 
 permissions: {}
 
-# A release that has started always finishes; the next push waits.
+# A release that has started always finishes. Pushes meanwhile queue, but GitHub keeps only the
+# newest waiting run; that one still sees every merged commit.
 concurrency:
   group: release
   cancel-in-progress: false
@@ -55,6 +56,8 @@ jobs:
         id: meta
         with:
           images: ${{ env.IMAGE }}
+          # :latest comes from the explicit raw tag below, not from the semver default.
+          flavor: latest=false
           tags: |
             type=semver,pattern={{version}},value=v${{ env.VERSION }}
             type=semver,pattern={{major}}.{{minor}},value=v${{ env.VERSION }}

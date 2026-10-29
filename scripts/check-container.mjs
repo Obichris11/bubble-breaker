@@ -3,8 +3,12 @@
 // job runs it against the container started from deploy/compose.yml:
 //   node scripts/check-container.mjs http://127.0.0.1:18080
 // Add --public to also require HSTS (set by the DSM reverse proxy, not by the container).
-const base = (process.argv[2] ?? 'http://127.0.0.1:18080').replace(/\/$/, '');
-const isPublic = process.argv.includes('--public');
+const args = process.argv.slice(2);
+const base = (args.find((arg) => !arg.startsWith('--')) ?? 'http://127.0.0.1:18080').replace(
+  /\/$/,
+  '',
+);
+const isPublic = args.includes('--public');
 
 const CSP = [
   "default-src 'self'",

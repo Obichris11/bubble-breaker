@@ -165,8 +165,8 @@ services:
 1. `cd` to its folder, `set -euo pipefail`, append `/usr/local/bin:/usr/bin:/bin` to `PATH`, take `flock -n .update.lock` (a busy run makes the next one exit 0).
 2. Use `docker compose`, or `docker-compose` when the plugin is missing.
 3. `compose pull -q` (its output is shown only when the pull fails, which exits 1).
-4. Compare the running container's image ID with the configured tag's ID. Equal: exit 0 silently, unless the container is `unhealthy`, which exits 1 on every run until it is fixed.
-5. Different (new release, rollback pin or first run): `compose up -d --remove-orphans`, then wait up to 60 s for `healthy`. Not healthy: log `FAILED <old> -> <new>`, print the last 50 container log lines, **exit 1** (DSM emails). Healthy: prune dangling images with this repo's source label and log `<old> -> <new>` (`none` on the first run).
+4. Compare the running container's image ID with the configured tag's ID. Equal: exit 0 silently, unless the container is stopped or `unhealthy`, which exits 1 on every run until it is fixed (a stopped container is not started: it may be stopped on purpose). If the last log line is a `FAILED` deploy and the container is now `healthy`, prune and log `recovered <version>`.
+5. Different (new release, rollback pin or first run): `compose up -d --remove-orphans`, then wait up to 90 s for `healthy` (covers Docker < 25, whose first check is at 30 s). `compose up` fails or not healthy: log `FAILED <old> -> <new>: <reason>`, print the last 50 container log lines, **exit 1** (DSM emails). There is no automatic rollback; see Rollback. Healthy: prune dangling images with this repo's source label and log `<old> -> <new>` (`none` on the first run).
 6. `update.log` keeps the last 500 lines.
 
 On the NAS, verify the docker binary path (`/usr/local/bin/docker`) and that `docker compose` (v2) is available. DSM 7.2 Container Manager ships both.
@@ -184,7 +184,7 @@ Clients: the service worker picks up the rolled-back version like any other upda
 ## Monitoring
 
 - The container `HEALTHCHECK` status is visible in Container Manager.
-- The updater emails on a failed pull, on a failed deploy, and on every run while the container is unhealthy.
+- The updater emails on a failed pull, on a failed deploy, and on every run while the container is stopped or unhealthy.
 - Optional: an external uptime check on `https://<game-domain>/health` (e.g. an Uptime Kuma instance elsewhere, or a free hosted monitor). Not needed for v1.
 
 ## PWA deployment requirements

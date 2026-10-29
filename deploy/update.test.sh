@@ -4,6 +4,12 @@
 # Image ids in the stub are `sha256:<version>`, so the log line shows which version ran.
 set -euo pipefail
 
+# update.sh takes its lock with util-linux flock, which Linux (CI, DSM) has and macOS lacks.
+if ! command -v flock >/dev/null; then
+  echo 'update.sh: skipped, needs util-linux flock (Linux or CI)' >&2
+  exit 0
+fi
+
 HERE=$(cd "$(dirname "$0")" && pwd)
 failures=0
 passed=0
@@ -11,7 +17,8 @@ passed=0
 # A fresh folder with a copy of update.sh, a stub docker and its state:
 #   remote = id the registry has, local = id after the last pull,
 #   running = id of the container's image (absent: no container),
-#   health = what the health check reports, no-plugin = no `docker compose`.
+#   health = what the health check reports, stopped = container exists but is not running,
+#   up-fails = `compose up` errors, no-plugin = no `docker compose`.
 setup() {
   WORK=$(mktemp -d)
   mkdir -p "$WORK/bin" "$WORK/state"
@@ -27,10 +34,15 @@ case "$*" in
     echo ' Image ghcr.io/obichris11/bubble-breaker:latest Pulled' >&2
     [ ! -f "$S/offline" ] || { echo 'Error response from daemon: Get "https://ghcr.io/v2/": dial tcp: i/o timeout' >&2; exit 18; }
     cp "$S/remote" "$S/local" ;;
-  'compose up -d --remove-orphans') cp "$S/local" "$S/running" ;;
+  'compose up -d --remove-orphans')
+    [ ! -f "$S/up-fails" ] || { echo 'Error: Bind for 127.0.0.1:18080 failed: port is already allocated' >&2; exit 1; }
+    cp "$S/local" "$S/running" ;;
   'image inspect -f {{.Id}} ghcr.io/obichris11/bubble-breaker:latest') cat "$S/local" ;;
   'inspect -f {{.Image}} bubble-breaker') cat "$S/running" 2>/dev/null || exit 1 ;;
   'inspect -f {{.State.Health.Status}} bubble-breaker') cat "$S/health" ;;
+  'inspect -f {{.State.Running}} bubble-breaker')
+    [ -f "$S/running" ] || exit 1
+    if [ -f "$S/stopped" ]; then echo false; else echo true; fi ;;
   'image inspect -f {{index .Config.Labels "org.opencontainers.image.version"}} sha256:'*)
     id=${!#}
     echo "${id#sha256:}" ;;
@@ -116,7 +128,7 @@ echo starting >"$WORK/state/health"
 run_update
 check 'unhealthy exits 1' exited 1
 check 'unhealthy logs the failure' logged 'FAILED 2.0.0 -> 2.0.1: not healthy after 2s'
-check 'unhealthy explains on stderr' grep -q 'did not become healthy within 2s' "$WORK/stderr"
+check 'unhealthy explains on stderr' grep -q '2.0.0 -> 2.0.1 failed: not healthy after 2s' "$WORK/stderr"
 check 'unhealthy shows container logs' grep -q 'nginx: \[emerg\] example' "$WORK/stderr"
 check 'unhealthy does not prune' not_called 'image prune'
 
@@ -175,6 +187,41 @@ for i in $(seq 1 600); do echo "old line $i"; done >"$WORK/update.log"
 run_update
 check 'log is trimmed to 500 lines' test "$(wc -l <"$WORK/update.log")" -eq 500
 check 'log keeps the newest line' logged '2.0.0 -> 2.0.1'
+
+# 11. Nothing new, but the container is stopped: fail every run, do not start it (it may be on purpose).
+setup
+echo sha256:2.0.1 >"$WORK/state/remote"
+echo sha256:2.0.1 >"$WORK/state/running"
+touch "$WORK/state/stopped"
+run_update
+check 'stopped exits 1' exited 1
+check 'stopped says so' grep -q 'bubble-breaker 2.0.1 is not running' "$WORK/stderr"
+check 'stopped does not redeploy' not_called 'compose up'
+
+# 12. `compose up` itself fails (port taken, name clash): log it like a failed health check.
+setup
+echo sha256:2.0.1 >"$WORK/state/remote"
+echo sha256:2.0.0 >"$WORK/state/running"
+touch "$WORK/state/up-fails"
+run_update
+check 'compose up failure exits 1' exited 1
+check 'compose up failure is logged' logged 'FAILED 2.0.0 -> 2.0.1: compose up failed'
+check 'compose up failure shows the error' grep -q 'port is already allocated' "$WORK/stderr"
+check 'compose up failure does not prune' not_called 'image prune'
+
+# 13. A deploy logged FAILED that became healthy later: log the recovery and prune once.
+setup
+echo sha256:2.0.1 >"$WORK/state/remote"
+echo sha256:2.0.1 >"$WORK/state/running"
+echo '2026-10-29T12:00:00Z FAILED 2.0.0 -> 2.0.1: not healthy after 90s' >"$WORK/update.log"
+run_update
+check 'recovered exits 0' exited 0
+check 'recovered is logged' logged 'recovered 2.0.1'
+check 'recovered prunes' called \
+  'docker image prune -f --filter label=org.opencontainers.image.source=https://github.com/Obichris11/bubble-breaker'
+check 'recovered does not redeploy' not_called 'compose up'
+run_update
+check 'recovered logs once' test "$(grep -c recovered "$WORK/update.log")" -eq 1
 
 if [ "$failures" -gt 0 ]; then
   echo "update.sh: $failures failed, $passed passed" >&2
