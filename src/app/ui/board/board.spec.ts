@@ -5,6 +5,7 @@ import { GameStore } from '../../state/game.store';
 import { KEYS, type GameRecord } from '../../state/persistence';
 import { SettingsStore } from '../../state/settings.store';
 import { recordFrom } from '../../state/testing/records';
+import { Shell } from '../chrome/shell';
 import { GameBoard } from './board';
 
 const CELL = 32;
@@ -204,11 +205,32 @@ describe('GameBoard', () => {
       expect(screen.getByRole('status')).toHaveTextContent('New game.');
     });
 
+    it('opens and closes the menu with M, then gives focus back to the board', async () => {
+      const { board } = await setup();
+      const shell = TestBed.inject(Shell);
+      board.focus();
+      press(board, 'm', { altKey: true });
+      expect(shell.menuOpen()).toBe(false);
+      press(board, 'M');
+      expect(shell.menuOpen()).toBe(true);
+      board.blur();
+      press(board, 'm');
+      expect(shell.menuOpen()).toBe(false);
+      expect(board).toHaveFocus();
+    });
+
     it('leaves other keys alone', async () => {
       const { board } = await setup();
       expect(press(board, 'Tab')).toBe(true);
       expect(press(board, 'ArrowDown')).toBe(false);
     });
+  });
+
+  it('announces a new game dealt from outside the board (softkey or menu)', async () => {
+    const { store, fixture } = await setup();
+    store.newGame(3);
+    fixture.detectChanges();
+    expect(screen.getByRole('status')).toHaveTextContent('New game.');
   });
 
   it('announces game over', async () => {

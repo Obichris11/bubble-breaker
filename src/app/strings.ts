@@ -74,10 +74,15 @@ export const STRINGS = {
     time: (time: string) => `Time ${time} (not scored)`,
     newGame: 'New Game',
   },
+  paused: {
+    title: 'Paused',
+    message: 'The timer is stopped. Your board is saved.',
+    resume: 'Resume',
+  },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
     label:
-      'Bubble Breaker board, 11 columns by 12 rows. Arrow keys move, Enter or Space selects and bursts, Escape clears, N starts a new game.',
+      'Bubble Breaker board, 11 columns by 12 rows. Arrow keys move, Enter or Space selects and bursts, Escape clears, N starts a new game, M opens the menu.',
     /** Spoken ball names per Breaker Set, indexed by engine `Color` (red, blue, green, yellow, purple). */
     colorNames: {
       colorful: ['red', 'blue', 'green', 'yellow', 'purple'],
