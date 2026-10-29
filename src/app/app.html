@@ -1,7 +1,23 @@
-<div class="app-window">
-  <header class="title-bar">{{ strings.appTitle }}</header>
-  <main class="content">
-    <bb-board-area />
-    <router-outlet />
-  </main>
+<div class="frame">
+  <div class="app-window">
+    <bb-title-bar />
+    <main class="content">
+      <router-outlet />
+    </main>
+    <bb-softkey-bar
+      [leftLabel]="leftLabel()"
+      [menuOpen]="shell.menuOpen()"
+      (left)="onLeft()"
+      (menu)="shell.toggleMenu($event)"
+    />
+    @if (shell.menuOpen()) {
+      <bb-popup-menu
+        [items]="menu"
+        [label]="strings.softkeys.menu"
+        (choose)="onChoose($event)"
+        (dismiss)="shell.closeMenu()"
+      />
+    }
+  </div>
 </div>
+<p class="key-hint" aria-hidden="true">{{ strings.keyHint }}</p>

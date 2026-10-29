@@ -1,6 +1,10 @@
 /** All user-visible copy (ADR-0008). Components never hard-code text. */
 export const STRINGS = {
   appTitle: 'Bubble Breaker',
+  /** Browser tab title of a screen other than the game. */
+  pageTitle: (screen: string) => `${screen} – Bubble Breaker`,
+  /** Desktop only, under the app window (handoff D4); the board's label says the same. */
+  keyHint: 'Arrow keys move · Enter selects and bursts · Esc clears · N new game · M menu',
   status: {
     score: 'Score',
     selected: 'Selected',
@@ -78,6 +82,13 @@ export const STRINGS = {
     title: 'Paused',
     message: 'The timer is stopped. Your board is saved.',
     resume: 'Resume',
+  },
+  menu: {
+    newGame: 'New Game',
+    statistics: 'Statistics',
+    options: 'Options',
+    howToPlay: 'How to Play',
+    about: 'About',
   },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
