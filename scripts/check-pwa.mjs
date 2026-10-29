@@ -58,9 +58,10 @@ if (errors.length === 0) {
   }
 
   const index = read('index.html').toString();
-  check(index.includes('<link rel="manifest" href="manifest.webmanifest">'), 'no manifest link');
+  // The build writes void tags as `<link …>` or `<link …/>`, depending on its HTML optimizer.
+  check(/<link rel="manifest" href="manifest\.webmanifest"\/?>/.test(index), 'no manifest link');
   check(
-    index.includes(`<meta name="theme-color" content="${expected.theme_color}">`),
+    index.includes(`<meta name="theme-color" content="${expected.theme_color}"`),
     'no theme-color',
   );
 
