@@ -149,6 +149,23 @@ describe('PwaStore', () => {
       expect(TestBed.inject(SettingsStore).installDismissedAt()).toBe(FakeClock.EPOCH);
     });
 
+    it('only warns when the browser prompt fails', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const error = new Error('no user activation');
+      finishedOneGame();
+      platform.pwa.installError = error;
+      const store = create();
+      platform.pwa.installAvailable.set(true);
+      store.install();
+      // Lets the rejection settle, so an unhandled one fails the run.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith('Install prompt failed', error);
+      expect(TestBed.inject(SettingsStore).installDismissedAt()).toBeNull();
+      expect(store.notice()).not.toBe('install');
+      warn.mockRestore();
+    });
+
     it('stays away for 30 days after Not now', () => {
       finishedOneGame();
       const store = create();

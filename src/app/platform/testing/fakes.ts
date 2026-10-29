@@ -115,6 +115,8 @@ export class FakePwa implements PwaPort {
   readonly unrecoverable = signal(false);
   /** What the next `install()` resolves to: true = the player accepted the browser prompt. */
   installAccepted = true;
+  /** When set, the next `install()` rejects with it (the browser could not show the prompt). */
+  installError: Error | null = null;
   updateChecks = 0;
   installs = 0;
   reloads = 0;
@@ -126,7 +128,9 @@ export class FakePwa implements PwaPort {
   install(): Promise<boolean> {
     this.installs++;
     this.installAvailable.set(false);
-    return Promise.resolve(this.installAccepted);
+    return this.installError === null
+      ? Promise.resolve(this.installAccepted)
+      : Promise.reject(this.installError);
   }
 
   reload(): void {

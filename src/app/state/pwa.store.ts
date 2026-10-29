@@ -95,11 +95,16 @@ export class PwaStore {
 
   /** Install: the browser's prompt. Declining it there counts as "Not now". */
   install(): void {
-    void this.pwa.install().then((accepted) => {
-      if (!accepted) {
-        this.notNow();
-      }
-    });
+    void this.pwa
+      .install()
+      .then((accepted) => {
+        if (!accepted) {
+          this.notNow();
+        }
+      })
+      .catch((error: unknown) => {
+        console.warn('Install prompt failed', error);
+      });
   }
 
   notNow(): void {
