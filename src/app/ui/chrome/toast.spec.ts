@@ -25,4 +25,28 @@ describe('Toast', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
     expect(dismiss).toHaveBeenCalledTimes(1);
   });
+
+  it('stacks the text above a labelled dismiss button and the default action', async () => {
+    const act = vi.fn<() => void>();
+    const dismiss = vi.fn<() => void>();
+    await render(Toast, {
+      inputs: {
+        heading: 'Install Bubble Breaker',
+        detail: 'Add it to your home screen.',
+        actionLabel: 'Install',
+        dismissLabel: 'Not now',
+      },
+      on: { act, dismiss },
+    });
+    expect(screen.getByRole('status')).toHaveClass('toast--stacked');
+    expect(screen.getAllByRole('button').map((button) => button.textContent.trim())).toEqual([
+      'Not now',
+      'Install',
+    ]);
+    expect(screen.getByRole('button', { name: 'Install' })).toHaveClass('bb-button--default');
+    fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
+    expect(dismiss).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Install' }));
+    expect(act).toHaveBeenCalledTimes(1);
+  });
 });
