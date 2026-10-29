@@ -25,6 +25,13 @@ describe('FakeClock', () => {
     expect(clock.pending).toBe(0);
   });
 
+  it('moves the wall-clock time with the monotonic time', () => {
+    const clock = new FakeClock();
+    expect(clock.epochMs()).toBe(FakeClock.EPOCH);
+    clock.advance(1_000);
+    expect(clock.epochMs()).toBe(FakeClock.EPOCH + 1_000);
+  });
+
   it('cancels timers', () => {
     const clock = new FakeClock();
     const id = clock.setTimeout(() => {

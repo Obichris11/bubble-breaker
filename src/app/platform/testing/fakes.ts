@@ -12,12 +12,19 @@ interface PendingTimer {
 
 /** Manual clock: time only moves in `advance()`, which fires due timers in order. */
 export class FakeClock implements ClockPort {
+  /** `epochMs()` at time 0: 2026-10-01T00:00:00Z. */
+  static readonly EPOCH = Date.UTC(2026, 9, 1);
+
   private time = 0;
   private nextId = 1;
   private readonly timers = new Map<TimerId, PendingTimer>();
 
   now(): number {
     return this.time;
+  }
+
+  epochMs(): number {
+    return FakeClock.EPOCH + this.time;
   }
 
   setTimeout(callback: () => void, ms: number): TimerId {

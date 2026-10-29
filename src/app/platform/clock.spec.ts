@@ -11,6 +11,11 @@ describe('BrowserClock', () => {
     expect(clock.now()).toBeGreaterThanOrEqual(first);
   });
 
+  it('reads the wall-clock time', () => {
+    vi.useFakeTimers({ now: Date.UTC(2026, 9, 29) });
+    expect(new BrowserClock().epochMs()).toBe(Date.UTC(2026, 9, 29));
+  });
+
   it('runs and cancels timers', () => {
     vi.useFakeTimers();
     const clock = new BrowserClock();
