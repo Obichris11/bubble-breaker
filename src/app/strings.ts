@@ -10,6 +10,12 @@ export const STRINGS = {
     /** Prefix of the time field while the timer is stopped by Paused or an open menu/screen. */
     pausedPrefix: '‖ ',
   },
+  softkeys: {
+    newGame: 'New Game',
+    /** Left softkey on every screen except the Game screen: back to the game. */
+    done: 'Done',
+    menu: 'Menu',
+  },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
     label:

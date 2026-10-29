@@ -1,0 +1,14 @@
+<div class="bar">
+  <button type="button" class="bb-button key" (click)="left.emit()">{{ leftLabel() }}</button>
+  <button
+    #menuKey
+    type="button"
+    class="bb-button key"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="menuOpen()"
+    [class.key--open]="menuOpen()"
+    (click)="menu.emit(menuKey)"
+  >
+    {{ strings.softkeys.menu }}
+  </button>
+</div>
