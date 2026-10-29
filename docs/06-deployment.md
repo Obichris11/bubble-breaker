@@ -49,7 +49,7 @@ flowchart LR
 |---|---|
 | `/index.html`, `/ngsw.json`, `/ngsw-worker.js`, `/safety-worker.js`, `/worker-basic.min.js`, `/manifest.webmanifest` | `no-cache` |
 | Hashed bundles `*.[hash].js/css`, `/media/*`, fonts | `public, max-age=31536000, immutable` |
-| Icons | `public, max-age=604800` |
+| Icons (`/icons/*`, `/favicon.ico`) | `public, max-age=604800` |
 
 **Routing**
 - Known SPA routes (no file extension) → `try_files $uri /index.html`.
@@ -148,10 +148,10 @@ Clients: the service worker picks up the rolled-back version like any other upda
 ## PWA deployment requirements
 
 - HTTPS on the public hostname; the service worker requires it.
-- The manifest has `name`, `short_name`, `start_url: "/"`, `scope: "/"`, `display: "standalone"`, and `theme_color` / `background_color` from the design tokens.
-- Icons at 192 and 512 px, plus a 512 px maskable icon.
+- The manifest has `name`, `short_name`, `start_url: "/"`, `scope: "/"`, `display: "standalone"`, and `theme_color` / `background_color` from the design tokens (`public/manifest.webmanifest`; `short_name` "Bubbles", `id` `/`, theme `#0A246A`, background `#D4D0C8`).
+- Icons at 192 and 512 px, plus a 512 px maskable icon and a 180 px `apple-touch-icon`, in `public/icons/` (drawn by `npm run icons`).
 - `ngsw-config.json` uses asset groups only:
-  - app shell + fonts: `prefetch`;
+  - app shell (`index.html`, manifest, favicon, JS, CSS) + fonts: `prefetch`;
   - icons: `lazy`.
 
 ## Release checklist (manual, per release)

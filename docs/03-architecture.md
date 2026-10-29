@@ -55,14 +55,16 @@ src/
     strings.ts
     version.ts       VERSION for About (bumped by release-please, Plan 07)
     engine/          rules.ts rng.ts board.ts groups.ts physics.ts move.ts game.ts index.ts (+ *.spec.ts)
-    state/           game.store.ts stats.store.ts settings.store.ts phase-runner.ts timer.ts persistence.ts motion.ts format.ts
-    platform/        clock.ts storage.ts audio.ts visibility.ts reduced-motion.ts provide-platform.ts (pwa.ts in Plan 06) + testing/fakes.ts
+    state/           game.store.ts stats.store.ts settings.store.ts phase-runner.ts timer.ts persistence.ts motion.ts format.ts pwa.store.ts
+    platform/        clock.ts storage.ts audio.ts visibility.ts reduced-motion.ts pwa.ts provide-platform.ts + testing/fakes.ts
     ui/
       chrome/        shell title-bar status-strip softkey-bar popup-menu confirm-dialog toast
       board/         board-area board board-layout (cell math) ball-look announcer points-bubble live-region
-      screens/       screen stat-rows game-screen paused-dialog scoring-screen scoring-guard
+      screens/       screen stat-rows game-screen paused-dialog pwa-notice scoring-screen scoring-guard
                      statistics-screen options-screen how-to-play-screen about-screen
 ```
+
+Outside `src/`: `ngsw-config.json` (service-worker asset groups), `public/manifest.webmanifest` and `public/icons/` (drawn by `scripts/make-icons.mjs`), and `scripts/check-pwa.mjs` (CI build check).
 
 ## Engine (pure TypeScript)
 
@@ -151,8 +153,13 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 - `newHigh` (not persisted) marks a record that beat the previous high. `reset()` keeps `lastRecordedGameId`.
 
 **SettingsStore**
-- Holds `breakerSet: 'colorful' | 'greyscale'`, `shapeHints`, `sound`.
+- Holds `breakerSet: 'colorful' | 'greyscale'`, `shapeHints`, `sound` and `installDismissedAt` (wall-clock ms of the install notice's "Not now", or null).
 - Defaults: Colorful, shape hints off, sound on.
+
+**PwaStore**
+- `notice`: `'update' | 'offline' | 'install' | null`, one at a time, most urgent first. Offline ready shows for 4 s. Install needs `StatsStore.played() > 0` and no "Not now" in the last 30 days (`ClockPort.epochMs()`).
+- Intents: `reload()` saves the game (`GameStore.save()`), then calls `PwaPort.reload()`; `dismiss()` (× on New version or Offline ready); `install()` (a declined browser prompt counts as "Not now"); `notNow()`.
+- It reloads after saving when the service worker is `unrecoverable`, and calls `PwaPort.checkForUpdate()` when the page becomes visible again. `app.config.ts` creates it at start (`provideAppInitializer`).
 
 **Timer**
 - Elapsed time is accumulated by `state/timer.ts`. It starts on the first tap that selects a group, runs while the game is not paused, covered or over, and stops at game over. The display updates on whole seconds; saves use the exact value.
@@ -166,7 +173,7 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 
 | Key | Content | Written |
 |---|---|---|
-| `bb:v1:settings` | `{ breakerSet, shapeHints, sound }` | on change |
+| `bb:v1:settings` | `{ breakerSet, shapeHints, sound, installDismissedAt }` | on change |
 | `bb:v1:stats` | `{ high, total, played, last, lastRecordedGameId }` | on game over |
 | `bb:v1:game` | `{ gameId, seed, colors, cells, score, elapsedMs }` | at the deal, after each burst settles, on pause/hidden, when a menu/screen/dialog covers the board, before SW reload; cleared at game over |
 
@@ -175,6 +182,7 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 - Saves happen after the animation settles, from the final `Game`.
 - `bb:v1:game` is also written when a game is dealt, so a reload never restores an abandoned game.
 - A saved game without moves is discarded on start.
+- A settings record without `installDismissedAt` (written before Plan 06) reads as `null`; the schema stays v1.
 
 ## UI
 
@@ -203,12 +211,13 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 
 **Chrome** (`ui/chrome/`)
 - `Shell` (root service) holds the popup-menu state and the number of open modal dialogs, and knows whether the Game screen shows (`isActive('/')`). `covered = !onGame || menuOpen || dialogs > 0` reaches `GameStore.setCovered` through an effect. Closing the menu gives focus back to its opener; a menu choice that changes screen closes the menu after the navigation, so the timer never runs in between.
-- `TitleBar` (26 px banner), `StatusStrip` (Score / Selected / Time; Game screen only), `SoftkeyBar` (New Game or Done, and Menu with `aria-haspopup`/`aria-expanded`), `PopupMenu` (roving focus, wrapping arrows, Home/End, Esc/Tab; a press outside closes it), `ConfirmDialog` (native `<dialog>` with `showModal()`, `role="alertdialog"`, starts on Cancel, Esc dismisses, focus returns) and `Toast` (`role="status"`, optional action and ×; Plan 06 shows the PWA notices with it).
+- `TitleBar` (26 px banner), `StatusStrip` (Score / Selected / Time; Game screen only), `SoftkeyBar` (New Game or Done, and Menu with `aria-haspopup`/`aria-expanded`), `PopupMenu` (roving focus, wrapping arrows, Home/End, Esc/Tab; a press outside closes it), `ConfirmDialog` (native `<dialog>` with `showModal()`, `role="alertdialog"`, starts on Cancel, Esc dismisses, focus returns) and `Toast` (`role="status"`; optional action and ×, or a stacked layout with a labelled dismiss button and a default action).
 - Shared button and window styles live in the global `src/styles/chrome.css`.
 - Desktop (`pointer: fine`): `App` draws a 536 × 668 window (`windowSize()` in `board-layout.ts`) with a 3 px bevel on the `#2F6468` backdrop and the key hint below it; below 708 px of height or 560 px of width the window fills the viewport and the cell follows the height.
 
 **Screens** (`ui/screens/`)
-- `GameScreen` (route `''`): status strip, board area and `PausedDialog`, a non-modal dialog over the board area (below the softkeys) shown while `GameStore.paused()`; the board area is `inert` meanwhile. Resume or Esc call `resume()` and focus the board.
+- `GameScreen` (route `''`): status strip, `PwaNotice`, board area and `PausedDialog`, a non-modal dialog over the board area (below the softkeys) shown while `GameStore.paused()`; the board area and the notice are `inert` meanwhile. Resume or Esc call `resume()` and focus the board.
+- `PwaNotice` (`bb-pwa-notice`) shows `PwaStore.notice()` with `Toast` in the flow above the board area, so the board gives up the height instead of being covered. It leaves with `animate.leave` and gives focus back to the board when a focused notice goes away.
 - The other screens use `Screen` (`bb-screen`): an `<h1>` that takes focus after an in-app navigation, above a scrolling white panel. `StatRows` renders the label/value rows.
 - `ScoringScreen`, `StatisticsScreen` (reset through `ConfirmDialog`), `OptionsScreen` (native radios and checkboxes bound to `SettingsStore`), `HowToPlayScreen`, `AboutScreen` (`VERSION` from `src/app/version.ts`).
 
@@ -217,21 +226,24 @@ No NgRx ([ADR-0004](adr/0004-signals-no-state-library.md)). Three root-provided 
 Abstract classes used as DI tokens, bound by `providePlatform()` in `app.config.ts`; tests use the fakes in `platform/testing/fakes.ts` via `createFakePlatform()`.
 
 - **StoragePort**: `get/set/remove` JSON. `BrowserStorage` resolves `localStorage` on every call and swallows every error with a warning (private mode, quota).
-- **ClockPort**: `now()`, `setTimeout`, `clearTimeout`.
+- **ClockPort**: `now()` (monotonic), `epochMs()` (wall clock, for dates kept across sessions), `setTimeout`, `clearTimeout`.
 - **AudioPort**: `play('select' | 'pop' | 'gameOver')`. `BrowserAudio` creates or resumes the `AudioContext` on the first play, which always runs inside a tap or key press, and plays sounds synthesized from the legacy designs. It stays silent when Web Audio is unavailable. The GameStore calls it only when sound is on.
 - **VisibilityPort**: a `hidden` signal from `visibilitychange`.
 - **ReducedMotionPort**: a `reduced` signal from `matchMedia('(prefers-reduced-motion: reduce)')`; false where `matchMedia` is missing.
-- **Pwa** (Plan 06):
-  - Exposes `updateAvailable`, `offlineReady` and `installAvailable` signals from `SwUpdate` and `beforeinstallprompt`.
-  - `reload()` saves the game first (`GameStore.save()`).
-  - The install "Not now" timestamp is persisted in `bb:v1:settings`.
+- **PwaPort** (`platform/pwa.ts`, [ADR-0007](adr/0007-pwa-ngsw.md)):
+  - `updateAvailable`: a `VERSION_READY` from `SwUpdate.versionUpdates`.
+  - `offlineReady`: on a page the worker did not control at load, every `prefetch` URL of `ngsw.json` is in Cache Storage (checked every 2 s for up to 2 min; ngsw reports no first install).
+  - `installAvailable`: a `beforeinstallprompt` was kept (`preventDefault()`); cleared by `install()` and `appinstalled`.
+  - `unrecoverable`: from `SwUpdate.unrecoverable`.
+  - `checkForUpdate()`, `install()` (the browser prompt; resolves true when accepted) and `reload()`. Saving before a reload is `PwaStore`'s job, because platform may not import state.
+  - `providePlatform()` also registers `ngsw-worker.js` with `provideServiceWorker`, in production builds only.
 
 ## Error handling
 
 - The engine throws only on programmer error (invalid cell). Tests cover this; the UI never passes an invalid cell.
 - The storage port swallows quota and security errors and logs a warning. The game still works without persistence.
 - A global `ErrorHandler` logs to the console only. There is no remote telemetry: the About screen promises "no tracking".
-- A service-worker `unrecoverable` state triggers a forced reload after saving.
+- A service-worker `unrecoverable` state triggers a forced reload after saving (`PwaStore`).
 
 ## Performance budget
 
