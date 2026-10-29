@@ -69,6 +69,36 @@ describe('GameScreen', () => {
     expect(screen.getByRole('application')).toHaveFocus();
   });
 
+  it('shows PWA notices above the board, under the Paused dialog', async () => {
+    const { harness } = await setup(STARTED);
+    platform.pwa.offlineReady.set(true);
+    TestBed.tick();
+    await harness.fixture.whenStable();
+    const notice = screen.getByText('Ready to play offline.').closest('bb-pwa-notice')!;
+    expect(notice.compareDocumentPosition(boardArea()!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(notice).toHaveAttribute('inert');
+  });
+
+  it.each([
+    ['is dismissed', () => fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))],
+    [
+      'hides itself',
+      () => {
+        platform.clock.advance(4_000);
+      },
+    ],
+  ])('gives focus back to the board when a focused notice %s', async (_, hide) => {
+    const { harness } = await setup(FRESH);
+    platform.pwa.offlineReady.set(true);
+    TestBed.tick();
+    await harness.fixture.whenStable();
+    screen.getByRole('button', { name: 'Dismiss' }).focus();
+    hide();
+    await harness.fixture.whenStable();
+    expect(screen.queryByText('Ready to play offline.')).toBeNull();
+    expect(screen.getByRole('application')).toHaveFocus();
+  });
+
   it('leaves focus alone on the first page load', async () => {
     await setup(FRESH);
     expect(screen.getByRole('application')).not.toHaveFocus();

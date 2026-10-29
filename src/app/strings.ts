@@ -90,6 +90,17 @@ export const STRINGS = {
     howToPlay: 'How to Play',
     about: 'About',
   },
+  pwa: {
+    updateTitle: 'New version available.',
+    updateText: 'Reload to update. Your game and statistics are kept.',
+    reload: 'Reload',
+    offlineTitle: 'Ready to play offline.',
+    offlineText: 'The game now works without a connection.',
+    installTitle: 'Install Bubble Breaker',
+    installText: 'Add it to your home screen to play full screen and offline.',
+    notNow: 'Not now',
+    install: 'Install',
+  },
   board: {
     /** `aria-label` of the board (`role="application"`): what it is and its keys. */
     label:
