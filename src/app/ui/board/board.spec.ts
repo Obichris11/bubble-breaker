@@ -147,12 +147,12 @@ describe('GameBoard', () => {
       const { board, fixture } = await setup();
       board.focus();
       fixture.detectChanges();
-      expect(screen.getByTestId('focus-ring').style.transform).toBe('translate(0px, 0px)');
-      press(board, 'ArrowDown');
+      expect(screen.getByTestId('focus-ring').style.transform).toBe('translate(160px, 352px)');
+      press(board, 'ArrowUp');
       press(board, 'ArrowRight');
       fixture.detectChanges();
-      expect(screen.getByTestId('focus-ring').style.transform).toBe('translate(32px, 32px)');
-      expect(screen.getByRole('status')).toHaveTextContent('Row 2, column 2, empty');
+      expect(screen.getByTestId('focus-ring').style.transform).toBe('translate(192px, 320px)');
+      expect(screen.getByRole('status')).toHaveTextContent('Row 11, column 7, empty');
     });
 
     it('hides the ring for pointer focus and on blur', async () => {
@@ -171,8 +171,7 @@ describe('GameBoard', () => {
 
     it('selects and bursts with Enter or Space, and announces both', async () => {
       const { board, store, fixture } = await setup();
-      for (let i = 0; i < 11; i++) press(board, 'ArrowDown');
-      for (let i = 0; i < 9; i++) press(board, 'ArrowRight');
+      for (let i = 0; i < 4; i++) press(board, 'ArrowRight');
       fixture.detectChanges();
       expect(screen.getByRole('status')).toHaveTextContent('Row 12, column 10, red, group of 2');
       press(board, 'Enter');

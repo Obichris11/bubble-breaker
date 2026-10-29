@@ -42,7 +42,6 @@ const STEPS: Record<Direction, Cell> = {
   right: { row: 0, col: 1 },
 };
 
-const START_CURSOR: Cell = { row: 0, col: 0 };
 const NO_BALLS: ReadonlySet<BallId> = new Set();
 
 function positionsOf(board: Board): ReadonlyMap<BallId, Cell> {
@@ -53,6 +52,11 @@ function positionsOf(board: Board): ReadonlyMap<BallId, Cell> {
     }
   });
   return positions;
+}
+
+/** Where the keyboard cursor starts: bottom row, middle column (row 12, column 6 on 11 × 12). */
+function startCursor(board: Board): Cell {
+  return { row: board.rows - 1, col: Math.floor(board.columns / 2) };
 }
 
 function sameCell(a: Cell, b: Cell): boolean {
@@ -91,7 +95,7 @@ export class GameStore {
   private readonly selectionSignal = signal<Selection | null>(null);
   private readonly phaseSignal = signal<Phase>('idle');
   private readonly poppingSignal = signal<ReadonlySet<BallId>>(NO_BALLS);
-  private readonly cursorSignal = signal<Cell>(START_CURSOR);
+  private readonly cursorSignal = signal<Cell>(startCursor(this.gameSignal().board));
   private readonly pausedSignal = signal(false);
   private readonly coveredSignal = signal(false);
   /** The timer has started: a tap selected a group, or a restored game already had time. */
@@ -190,7 +194,7 @@ export class GameStore {
     this.selectionSignal.set(null);
     this.phaseSignal.set('idle');
     this.poppingSignal.set(NO_BALLS);
-    this.cursorSignal.set(START_CURSOR);
+    this.cursorSignal.set(startCursor(game.board));
     this.pausedSignal.set(false);
     this.startedSignal.set(false);
     this.showScoringSignal.set(false);
@@ -318,6 +322,7 @@ export class GameStore {
     this.gameIdSignal.set(saved.gameId);
     this.gameSignal.set(saved.game);
     this.shownBoard.set(saved.game.board);
+    this.cursorSignal.set(startCursor(saved.game.board));
     this.timer.reset(saved.elapsedMs);
     const started = saved.elapsedMs > 0;
     this.startedSignal.set(started);
