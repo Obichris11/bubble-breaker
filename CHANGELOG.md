@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.1](https://github.com/Obichris11/bubble-breaker/compare/v2.0.0...v2.0.1) (2026-10-30)
+
+
+### Bug Fixes
+
+* **ci:** trivy gates the release on critical and high only ([#21](https://github.com/Obichris11/bubble-breaker/issues/21)) ([b06e1eb](https://github.com/Obichris11/bubble-breaker/commit/b06e1eb33c5fe8b898f1de992f56e877d9fd11e8))
+
 ## 2.0.0 (2026-10-30)
 
 
