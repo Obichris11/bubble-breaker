@@ -4,12 +4,6 @@
 # Image ids in the stub are `sha256:<version>`, so the log line shows which version ran.
 set -euo pipefail
 
-# update.sh takes its lock with util-linux flock, which Linux (CI, DSM) has and macOS lacks.
-if ! command -v flock >/dev/null; then
-  echo 'update.sh: skipped, needs util-linux flock (Linux or CI)' >&2
-  exit 0
-fi
-
 HERE=$(cd "$(dirname "$0")" && pwd)
 failures=0
 passed=0
@@ -120,7 +114,7 @@ check 'update prunes by source label' called \
   'docker image prune -f --filter label=org.opencontainers.image.source=https://github.com/Obichris11/bubble-breaker'
 check 'update logs old -> new' logged '2.0.0 -> 2.0.1'
 
-# 4. The new container never becomes healthy: exit 1 for the DSM email, keep old images.
+# 4. The new container never becomes healthy: exit 1 so DSM marks the run failed, keep old images.
 setup
 echo sha256:2.0.1 >"$WORK/state/remote"
 echo sha256:2.0.0 >"$WORK/state/running"
@@ -148,19 +142,7 @@ run_update
 check 'rollback redeploys' called 'docker compose up -d --remove-orphans'
 check 'rollback logs new -> old' logged '2.0.1 -> 2.0.0'
 
-# 7. A run that is still busy holds the lock: the next one exits 0 without pulling.
-setup
-echo sha256:2.0.1 >"$WORK/state/remote"
-: >"$WORK/.update.lock"
-flock "$WORK/.update.lock" sleep 3 &
-holder=$!
-sleep 0.5
-run_update
-wait "$holder"
-check 'locked exits 0' exited 0
-check 'locked does not pull' not_called 'pull'
-
-# 8. Without the compose plugin, the standalone docker-compose binary is used.
+# 7. Without the compose plugin, the standalone docker-compose binary is used.
 setup
 echo sha256:2.0.1 >"$WORK/state/remote"
 echo sha256:2.0.0 >"$WORK/state/running"
@@ -169,7 +151,7 @@ run_update
 check 'fallback exits 0' exited 0
 check 'fallback uses docker-compose' called 'docker-compose pull -q'
 
-# 9. The registry cannot be reached: exit 1 with docker's error, nothing else runs.
+# 8. The registry cannot be reached: exit 1 with docker's error, nothing else runs.
 setup
 echo sha256:2.0.1 >"$WORK/state/remote"
 echo sha256:2.0.0 >"$WORK/state/running"
@@ -179,7 +161,7 @@ check 'offline exits 1' exited 1
 check 'offline shows the pull error' grep -q 'i/o timeout' "$WORK/stderr"
 check 'offline does not redeploy' not_called 'compose up'
 
-# 10. The log keeps its last 500 lines.
+# 9. The log keeps its last 500 lines.
 setup
 echo sha256:2.0.1 >"$WORK/state/remote"
 echo sha256:2.0.0 >"$WORK/state/running"
@@ -188,7 +170,7 @@ run_update
 check 'log is trimmed to 500 lines' test "$(wc -l <"$WORK/update.log")" -eq 500
 check 'log keeps the newest line' logged '2.0.0 -> 2.0.1'
 
-# 11. Nothing new, but the container is stopped: fail every run, do not start it (it may be on purpose).
+# 10. Nothing new, but the container is stopped: fail every run, do not start it (it may be on purpose).
 setup
 echo sha256:2.0.1 >"$WORK/state/remote"
 echo sha256:2.0.1 >"$WORK/state/running"
@@ -198,7 +180,7 @@ check 'stopped exits 1' exited 1
 check 'stopped says so' grep -q 'bubble-breaker 2.0.1 is not running' "$WORK/stderr"
 check 'stopped does not redeploy' not_called 'compose up'
 
-# 12. `compose up` itself fails (port taken, name clash): log it like a failed health check.
+# 11. `compose up` itself fails (port taken, name clash): log it like a failed health check.
 setup
 echo sha256:2.0.1 >"$WORK/state/remote"
 echo sha256:2.0.0 >"$WORK/state/running"
@@ -209,7 +191,7 @@ check 'compose up failure is logged' logged 'FAILED 2.0.0 -> 2.0.1: compose up f
 check 'compose up failure shows the error' grep -q 'port is already allocated' "$WORK/stderr"
 check 'compose up failure does not prune' not_called 'image prune'
 
-# 13. A deploy logged FAILED that became healthy later: log the recovery and prune once.
+# 12. A deploy logged FAILED that became healthy later: log the recovery and prune once.
 setup
 echo sha256:2.0.1 >"$WORK/state/remote"
 echo sha256:2.0.1 >"$WORK/state/running"

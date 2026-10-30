@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Redeploys Bubble Breaker when the configured image changed (06-deployment "Updater").
-# DSM Task Scheduler runs it as root every 15 minutes:
+# DSM Task Scheduler runs it as root once a month (Task Scheduler → Run deploys now):
 #   bash /volume1/docker/bubble-breaker/update.sh
-# Silent when nothing changed; exits 1 (so DSM sends an email) when a deploy fails.
+# Silent when nothing changed; exits 1 (DSM marks the run failed) when a deploy fails.
 set -euo pipefail
 
 cd "$(dirname "$0")"
@@ -15,10 +15,6 @@ SOURCE_LABEL=org.opencontainers.image.source=https://github.com/Obichris11/bubbl
 HEALTH_TIMEOUT=${HEALTH_TIMEOUT:-90}
 POLL_SECONDS=${POLL_SECONDS:-2}
 LOG=update.log
-
-# One run at a time: a slow pull must not overlap the next scheduled run.
-exec 9>.update.lock
-flock -n 9 || exit 0
 
 if docker compose version >/dev/null 2>&1; then
   compose() { docker compose "$@"; }
@@ -51,7 +47,7 @@ prune() {
   docker image prune -f --filter "label=${SOURCE_LABEL}" >/dev/null
 }
 
-# A failed deploy: log it, show why and the container's last lines, exit 1 so DSM emails.
+# A failed deploy: log it, show why and the container's last lines, exit 1 so DSM marks the run failed.
 fail() {
   log "FAILED ${from} -> ${to}: $1"
   echo "bubble-breaker ${from} -> ${to} failed: $1" >&2
@@ -69,7 +65,7 @@ wanted=$(docker image inspect -f '{{.Id}}' "$image")
 running=$(docker inspect -f '{{.Image}}' "$CONTAINER" 2>/dev/null || true)
 if [ "$wanted" = "$running" ]; then
   version=$(version_of "$running")
-  # Keep failing (one email per run) while the deployed container is stopped or unhealthy.
+  # Keep failing on every run while the deployed container is stopped or unhealthy.
   if ! is_running; then
     echo "bubble-breaker ${version} is not running" >&2
     exit 1

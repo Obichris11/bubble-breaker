@@ -69,7 +69,7 @@ Rebuild Bubble Breaker from scratch as:
 | Repo | Public, `main`, squash merges, ruleset with required checks | 05 |
 | Release | release-please PR → tag → GHCR `X.Y.Z / X.Y / latest / sha` → Trivy | 05 |
 | Runtime | `nginx-unprivileged` alpine-slim, read-only, localhost-bound, behind DSM reverse proxy | 06 |
-| Updater | DSM Task Scheduler, `update.sh` every 15 min, health-gated, email on failure | 06 |
+| Updater | DSM Task Scheduler, `update.sh` monthly, health-gated, failed run on failure | 06 |
 
 ## Traceability: legacy problem → prevention
 

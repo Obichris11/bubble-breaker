@@ -22,7 +22,7 @@ flowchart LR
   browser[Browser] -->|"HTTPS 443"| router[Router]
   router --> proxy["DSM reverse proxy<br/>Let's Encrypt · HSTS · HTTP/2"]
   proxy -->|"http://127.0.0.1:18080"| app["container bubble-breaker<br/>nginx-unprivileged :8080, read-only"]
-  task["DSM Task Scheduler<br/>every 15 min"] --> upd[update.sh]
+  task["DSM Task Scheduler<br/>monthly"] --> upd[update.sh]
   upd -->|"docker compose pull / up -d"| app
   ghcr[(GHCR :latest)] --> upd
 ```
@@ -106,35 +106,15 @@ services:
 
 ## DSM configuration (one-time)
 
-`<nas>` is the NAS's LAN name or IP, `<admin>` an administrator account, `<game-domain>` your hostname (never in the repo). Run C1–C4, then the updater task (C5, next section), then C6 and C7.
+Everything runs in the DSM web UI with stock Synology tools: no SSH, no extra packages. `<game-domain>` is your hostname (never in the repo). Run C1–C4, then the updater task (C5, next section), then C6 and C7.
 
-- **C1: check the tools.** Control Panel → Terminal & SNMP → enable SSH. Then from your machine:
-
-  ```bash
-  ssh -t <admin>@<nas> 'sudo -i sh -c "command -v docker flock; docker version --format {{.Server.Version}}; docker compose version || docker-compose version"'
-  ```
-
-  Expected: `/usr/local/bin/docker` and a `flock` path; a server version (Docker ≥ 25 gets the fast health start, older works with the 30 s first check); a compose v2 version. If `flock` is missing, stop and report: `update.sh` needs it.
+- **C1: tools.** Nothing to install or check: Container Manager on DSM 7.2 ships `docker` and compose v2, which is all `update.sh` needs. Docker ≥ 25 gets the fast health start; older works with the 30 s first check.
 
 - **C2: retire the legacy container first** (its name is probably `bubble-breaker` too, which would block the new one). Container Manager → Container → old `bubble-breaker` → Action → Stop, then Delete; Image → delete the old image. Keep its reverse-proxy entry for C6. The site is down from here until C4.
 
-- **C3: folder and files.** File Station → shared folder `docker` → Create folder `bubble-breaker`. Copy the two files from your clone of `main`:
+- **C3: folder and files.** File Station → shared folder `docker` → Create folder `bubble-breaker`. Open it → Upload, and upload `deploy/compose.yml` and `deploy/update.sh` from your clone of `main`.
 
-  ```bash
-  ssh <admin>@<nas> 'cat > /volume1/docker/bubble-breaker/compose.yml' < deploy/compose.yml
-  ```
-
-  ```bash
-  ssh <admin>@<nas> 'cat > /volume1/docker/bubble-breaker/update.sh' < deploy/update.sh
-  ```
-
-- **C4: Container Manager project.** Container Manager → Project → Create. Project name `bubble-breaker`; Path `/docker/bubble-breaker`; Source: use the existing compose file. If Container Manager only offers to create a `docker-compose.yml`, paste the content of `compose.yml` there and delete `compose.yml` (compose and `update.sh` read either name). Skip the Web Station portal. Next → Done: it pulls `ghcr.io/obichris11/bubble-breaker:latest` (public since B3) and starts it. Check:
-
-  ```bash
-  ssh -t <admin>@<nas> 'curl -s http://127.0.0.1:18080/health; sudo docker inspect -f "{{.State.Health.Status}}" bubble-breaker'
-  ```
-
-  Expected: `ok` and `healthy`.
+- **C4: Container Manager project.** Container Manager → Project → Create. Project name `bubble-breaker`; Path `/docker/bubble-breaker`; Source: use the existing compose file. If Container Manager only offers to create a `docker-compose.yml`, paste the content of `compose.yml` there and delete `compose.yml` (compose and `update.sh` read either name). Skip the Web Station portal. Next → Done: it pulls `ghcr.io/obichris11/bubble-breaker:latest` (public since B3) and starts it. Check: Container Manager → Container shows `bubble-breaker` running and, after about 30 s, `healthy`.
 
 - **C6: certificate and reverse proxy.**
   1. Control Panel → Security → Certificate → Add → Add a new certificate → Get a certificate from Let's Encrypt: domain `<game-domain>`, your email. Port 80 must reach the NAS for the challenge (or use DNS-01 if DSM supports your provider).
@@ -157,26 +137,26 @@ services:
 
 - **C5: updater task.** Control Panel → Task Scheduler → Create → Scheduled Task → User-defined script.
   - General: Task `bubble-breaker update`, User `root`, Enabled.
-  - Schedule: Run on the following days → Daily; First run time 00:00; Frequency every 15 minutes; Last run time 23:45.
-  - Task Settings: ✓ Send run details by email, ✓ only when the script terminates abnormally (needs Control Panel → Notification → Email set up); Run command `bash /volume1/docker/bubble-breaker/update.sh`.
-  - OK, select the task → **Run**. Expected: no email; `/volume1/docker/bubble-breaker/update.log` stays empty because the running image already is `:latest`.
+  - Schedule: Run on the following date → today, Repeat Monthly; First run time 03:00, no repeat within the day.
+  - Task Settings: leave "Send run details by email" off; Run command `bash /volume1/docker/bubble-breaker/update.sh`.
+  - OK, select the task → **Run**. Expected: Action → View result shows a normal exit; `update.log` in the folder stays empty because the running image already is `:latest`.
 
 `deploy/update.sh` (behavior):
-1. `cd` to its folder, `set -euo pipefail`, append `/usr/local/bin:/usr/bin:/bin` to `PATH`, take `flock -n .update.lock` (a busy run makes the next one exit 0).
+1. `cd` to its folder, `set -euo pipefail`, append `/usr/local/bin:/usr/bin:/bin` to `PATH`, no lock: don't press Run while a run is still busy.
 2. Use `docker compose`, or `docker-compose` when the plugin is missing.
 3. `compose pull -q` (its output is shown only when the pull fails, which exits 1).
 4. Compare the running container's image ID with the configured tag's ID. Equal: exit 0 silently, unless the container is stopped or `unhealthy`, which exits 1 on every run until it is fixed (a stopped container is not started: it may be stopped on purpose). If the last log line is a `FAILED` deploy and the container is now `healthy`, prune and log `recovered <version>`.
-5. Different (new release, rollback pin or first run): `compose up -d --remove-orphans`, then wait up to 90 s for `healthy` (covers Docker < 25, whose first check is at 30 s). `compose up` fails or not healthy: log `FAILED <old> -> <new>: <reason>`, print the last 50 container log lines, **exit 1** (DSM emails). There is no automatic rollback; see Rollback. Healthy: prune dangling images with this repo's source label and log `<old> -> <new>` (`none` on the first run).
+5. Different (new release, rollback pin or first run): `compose up -d --remove-orphans`, then wait up to 90 s for `healthy` (covers Docker < 25, whose first check is at 30 s). `compose up` fails or not healthy: log `FAILED <old> -> <new>: <reason>`, print the last 50 container log lines, **exit 1** (Task Scheduler marks the run failed). There is no automatic rollback; see Rollback. Healthy: prune dangling images with this repo's source label and log `<old> -> <new>` (`none` on the first run).
 6. `update.log` keeps the last 500 lines.
 
 On the NAS, verify the docker binary path (`/usr/local/bin/docker`) and that `docker compose` (v2) is available. DSM 7.2 Container Manager ships both.
 
-The worst-case delay between a release and it being live is ~15 min plus the CI build time.
+A release goes live at the next monthly run. To deploy it now: Task Scheduler → `bubble-breaker update` → Run.
 
 ## Rollback
 
-1. Edit `compose.yml`: change `image:` from `:latest` to the previous `:X.Y.Z`. The updater then keeps that pin, because it pulls whatever tag is configured.
-2. Run the task manually (Task Scheduler → Run) or `bash update.sh`.
+1. On your machine, change `image:` in a copy of `compose.yml` from `:latest` to the previous `:X.Y.Z` and upload it over the NAS copy with File Station. The updater then keeps that pin, because it pulls whatever tag is configured.
+2. Run the task manually: Task Scheduler → `bubble-breaker update` → Run.
 3. Fix forward via a new release, then set the tag back to `:latest`.
 
 Clients: the service worker picks up the rolled-back version like any other update, via the "New version" toast.
@@ -184,7 +164,8 @@ Clients: the service worker picks up the rolled-back version like any other upda
 ## Monitoring
 
 - The container `HEALTHCHECK` status is visible in Container Manager.
-- The updater emails on a failed pull, on a failed deploy, and on every run while the container is stopped or unhealthy.
+- DSM's own notification reports a crashed container.
+- The updater sends nothing: a failed pull, a failed deploy, or a stopped or unhealthy container shows as a failed run in Task Scheduler (Action → View result) and, for deploys, as `FAILED` in `update.log`.
 - Optional: an external uptime check on `https://<game-domain>/health` (e.g. an Uptime Kuma instance elsewhere, or a free hosted monitor). Not needed for v1.
 
 ## PWA deployment requirements
@@ -200,6 +181,6 @@ Clients: the service worker picks up the rolled-back version like any other upda
 
 1. The release PR is green, then merge it.
 2. The `image` job is green: Trivy clean (code scanning, category `trivy-image`), tags `X.Y.Z`, `X.Y`, `latest` on one digest.
-3. Within 15 min, check that `https://<game-domain>/` shows the new version on the About screen.
+3. Task Scheduler → `bubble-breaker update` → Run, then check that `https://<game-domain>/` shows the new version on the About screen.
 4. `node scripts/check-container.mjs https://<game-domain> --public` passes (86 checks).
 5. On a phone, the "New version" toast appears, reloading works, and the game in progress is preserved.
