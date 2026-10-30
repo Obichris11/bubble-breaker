@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2](https://github.com/Obichris11/bubble-breaker/compare/v2.0.1...v2.0.2) (2026-10-30)
+
+
+### Bug Fixes
+
+* **deploy:** updater runs monthly without flock, NAS setup in the DSM web UI only ([#23](https://github.com/Obichris11/bubble-breaker/issues/23)) ([372c0f7](https://github.com/Obichris11/bubble-breaker/commit/372c0f77ae96bf9ef451b91f5c29791827da90ec))
+
 ## [2.0.1](https://github.com/Obichris11/bubble-breaker/compare/v2.0.0...v2.0.1) (2026-10-30)
 
 
