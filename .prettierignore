@@ -5,3 +5,4 @@ docs/
 package-lock.json
 src/styles/tokens.css
 CHANGELOG.md
+.release-please-manifest.json
