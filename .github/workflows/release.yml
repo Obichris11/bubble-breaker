@@ -82,6 +82,8 @@ jobs:
         with:
           image-ref: ${{ env.IMAGE }}@${{ steps.build.outputs.digest }}
           severity: CRITICAL,HIGH
+          # Without this, SARIF mode drops the severity filter and exit-code applies to every finding.
+          limit-severities-for-sarif: true
           ignore-unfixed: true
           exit-code: '1'
           format: sarif
