@@ -16,6 +16,7 @@ import { AudioPort, type Sound } from '../platform/audio';
 import { ClockPort } from '../platform/clock';
 import { ReducedMotionPort } from '../platform/reduced-motion';
 import { StoragePort } from '../platform/storage';
+import { TEST_SEED } from '../platform/test-seed';
 import { VisibilityPort } from '../platform/visibility';
 import { STRINGS } from '../strings';
 import { formatClock, formatNumber } from './format';
@@ -85,6 +86,7 @@ export class GameStore {
   private readonly settings = inject(SettingsStore);
   private readonly stats = inject(StatsStore);
   private readonly clock = inject(ClockPort);
+  private readonly testSeed = inject(TEST_SEED);
   private readonly timer = new Timer(this.clock);
   private readonly runner = new PhaseRunner(this.clock);
 
@@ -148,7 +150,8 @@ export class GameStore {
     if (saved !== null && hasMoves(saved.game)) {
       this.restore(saved);
     } else {
-      this.newGame();
+      // The seed is set in test builds only (04-quality "Test seed hook").
+      this.newGame(this.testSeed ?? undefined);
     }
     effect(() => {
       if (this.visibility.hidden()) {

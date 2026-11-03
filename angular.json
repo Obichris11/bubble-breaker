@@ -30,7 +30,10 @@
                 "output": "fonts"
               }
             ],
-            "styles": ["src/styles/tokens.css", "src/styles/base.css", "src/styles/chrome.css"]
+            "styles": ["src/styles/tokens.css", "src/styles/base.css", "src/styles/chrome.css"],
+            "define": {
+              "BB_TEST_HOOKS": "false"
+            }
           },
           "configurations": {
             "production": {
@@ -49,7 +52,10 @@
               "outputHashing": "all",
               "optimization": {
                 "scripts": true,
-                "styles": { "minify": true, "inlineCritical": false },
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
                 "fonts": true
               },
               "serviceWorker": "ngsw-config.json"
@@ -57,7 +63,16 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "define": {
+                "BB_TEST_HOOKS": "true"
+              }
+            },
+            "e2e": {
+              "define": {
+                "BB_TEST_HOOKS": "true"
+              },
+              "outputPath": "dist/e2e"
             }
           },
           "defaultConfiguration": "production"
