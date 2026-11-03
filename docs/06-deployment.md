@@ -101,20 +101,20 @@ services:
       options: { max-size: '1m', max-file: '3' }
 ```
 
-- Verified in Plan 07: with `read_only` and a tmpfs on `/tmp` the container starts healthy in about 3 s and uses about 5 MiB of RAM and 5 PIDs. `name: bubble-breaker` makes Container Manager and `update.sh` manage the same project.
+- Verified in Plan 07: with `read_only` and a tmpfs on `/tmp` the container starts healthy in about 3 s and uses about 5 MiB of RAM and 5 PIDs. `update.sh` is the only owner of the container: it creates it on the first run and recreates it on every update.
 - Host port 18080 is a placeholder; choose any free port.
 
 ## DSM configuration (one-time)
 
-Everything runs in the DSM web UI with stock Synology tools: no SSH, no extra packages. `<game-domain>` is your hostname (never in the repo). Run C1–C4, then the updater task (C5, next section), then C6 and C7.
+Everything runs in the DSM web UI with stock Synology tools: no SSH, no extra packages. `<game-domain>` is your hostname (never in the repo). Run C1–C4, then the updater task (C5, next section), which starts the game, then C6 and C7.
 
 - **C1: tools.** Nothing to install or check: Container Manager on DSM 7.2 ships `docker` and compose v2, which is all `update.sh` needs. Docker ≥ 25 gets the fast health start; older works with the 30 s first check.
 
-- **C2: retire the legacy container first** (its name is probably `bubble-breaker` too, which would block the new one). Container Manager → Container → old `bubble-breaker` → Action → Stop, then Delete; Image → delete the old image. Keep its reverse-proxy entry for C6. The site is down from here until C4.
+- **C2: retire the legacy container first** (its name is probably `bubble-breaker` too, which would block the new one). Container Manager → Container → old `bubble-breaker` → Action → Stop, then Delete; Image → delete the old image. Keep its reverse-proxy entry for C6. The site is down from here until C5.
 
 - **C3: folder and files.** File Station → shared folder `docker` → Create folder `bubble-breaker`. Open it → Upload, and upload `deploy/compose.yml` and `deploy/update.sh` from your clone of `main`.
 
-- **C4: Container Manager project.** Container Manager → Project → Create. Project name `bubble-breaker`; Path `/docker/bubble-breaker`; Source: use the existing compose file. If Container Manager only offers to create a `docker-compose.yml`, paste the content of `compose.yml` there and delete `compose.yml` (compose and `update.sh` read either name). Skip the Web Station portal. Next → Done: it pulls `ghcr.io/obichris11/bubble-breaker:latest` (public since B3) and starts it. Check: Container Manager → Container shows `bubble-breaker` running and, after about 30 s, `healthy`.
+- **C4: no Container Manager project.** Do not create one: compose in `update.sh` does not recognise a project's container as its own, so the first update stops with `Conflict. The container name "/bubble-breaker" is already in use`. The first Run of the C5 task pulls the image (public since B3) and creates the container. It still shows up under Container Manager → Container.
 
 - **C6: certificate and reverse proxy.**
   1. Control Panel → Security → Certificate → Add → Add a new certificate → Get a certificate from Let's Encrypt: domain `<game-domain>`, your email. Port 80 must reach the NAS for the challenge (or use DNS-01 if DSM supports your provider).
@@ -139,7 +139,8 @@ Everything runs in the DSM web UI with stock Synology tools: no SSH, no extra pa
   - General: Task `bubble-breaker update`, User `root`, Enabled.
   - Schedule: Run on the following date → today, Repeat Monthly; First run time 03:00, no repeat within the day.
   - Task Settings: leave "Send run details by email" off; Run command `bash /volume1/docker/bubble-breaker/update.sh`.
-  - OK, select the task → **Run**. Expected: Action → View result shows a normal exit; `update.log` in the folder stays empty because the running image already is `:latest`.
+  - OK, select the task → **Run**. Expected after about a minute: Action → View result shows status 0, `update.log` in the folder ends with `none -> X.Y.Z`, and Container Manager → Container shows `bubble-breaker` running and `healthy`.
+  - To read why a run failed: Task Scheduler → Settings → ✓ Save output results, choose the folder, Run again, then Action → View result.
 
 `deploy/update.sh` (behavior):
 1. `cd` to its folder, `set -euo pipefail`, append `/usr/local/bin:/usr/bin:/bin` to `PATH`, no lock: don't press Run while a run is still busy.
@@ -148,8 +149,6 @@ Everything runs in the DSM web UI with stock Synology tools: no SSH, no extra pa
 4. Compare the running container's image ID with the configured tag's ID. Equal: exit 0 silently, unless the container is stopped or `unhealthy`, which exits 1 on every run until it is fixed (a stopped container is not started: it may be stopped on purpose). If the last log line is a `FAILED` deploy and the container is now `healthy`, prune and log `recovered <version>`.
 5. Different (new release, rollback pin or first run): `compose up -d --remove-orphans`, then wait up to 90 s for `healthy` (covers Docker < 25, whose first check is at 30 s). `compose up` fails or not healthy: log `FAILED <old> -> <new>: <reason>`, print the last 50 container log lines, **exit 1** (Task Scheduler marks the run failed). There is no automatic rollback; see Rollback. Healthy: prune dangling images with this repo's source label and log `<old> -> <new>` (`none` on the first run).
 6. `update.log` keeps the last 500 lines.
-
-On the NAS, verify the docker binary path (`/usr/local/bin/docker`) and that `docker compose` (v2) is available. DSM 7.2 Container Manager ships both.
 
 A release goes live at the next monthly run. To deploy it now: Task Scheduler → `bubble-breaker update` → Run.
 
