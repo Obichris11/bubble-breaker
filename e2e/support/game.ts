@@ -1,5 +1,17 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { newGame, STANDARD_RULES, type Cell, type Game } from '../../src/app/engine';
+import {
+  allGroups,
+  burst,
+  countBalls,
+  newGame,
+  scoreFor,
+  STANDARD_RULES,
+  type Cell,
+  type Game,
+  type MoveResult,
+} from '../../src/app/engine';
+import { formatNumber } from '../../src/app/state/format';
+import { STRINGS } from '../../src/app/strings';
 
 export const SEED = 42;
 
@@ -11,7 +23,10 @@ export async function openSeeded(page: Page, seed = SEED): Promise<Game> {
 }
 
 export async function cellCenter(page: Page, cell: Cell): Promise<{ x: number; y: number }> {
-  const box = await page.locator('.board').boundingBox();
+  // The board is 0 × 0 until its first ResizeObserver callback.
+  const board = page.locator('.board');
+  await expect.poll(async () => (await board.boundingBox())?.width ?? 0).toBeGreaterThan(0);
+  const box = await board.boundingBox();
   if (box === null) {
     throw new Error('the board is not visible');
   }
@@ -27,4 +42,39 @@ export async function clickCell(page: Page, cell: Cell): Promise<void> {
 /** The value next to a label in a `dl`: the `dd` after the `dt` with that text. */
 export function field(page: Page, label: string): Locator {
   return page.locator(`dt:text-is("${label}") + dd`);
+}
+
+/** Selects and bursts the engine's first group, and waits for the board to settle. */
+export async function playMove(page: Page, game: Game): Promise<MoveResult> {
+  const group = allGroups(game)[0];
+  const cell = group?.[0];
+  const result = cell === undefined ? null : burst(game, cell);
+  if (group === undefined || cell === undefined || result === null) {
+    throw new Error('no move left');
+  }
+  await clickCell(page, cell);
+  await expect(field(page, STRINGS.status.selected)).toHaveText(
+    formatNumber(scoreFor(group.length)),
+  );
+  await clickCell(page, cell);
+  if (result.gameOver) {
+    // Game over opens Scoring at once with reduced motion, so there is no board to wait for.
+    await expect(page).toHaveURL(/\/scoring$/);
+  } else {
+    await expect(field(page, STRINGS.status.score)).toHaveText(formatNumber(result.game.score));
+    await expect(page.locator('.cell')).toHaveCount(countBalls(result.game.board));
+  }
+  return result;
+}
+
+/** Plays the first group until the game ends; returns the final game. */
+export async function playToEnd(page: Page, game: Game): Promise<Game> {
+  let current = game;
+  for (;;) {
+    const result = await playMove(page, current);
+    current = result.game;
+    if (result.gameOver) {
+      return current;
+    }
+  }
 }
