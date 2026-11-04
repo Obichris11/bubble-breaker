@@ -19,6 +19,7 @@
     "check:container": "node scripts/check-container.mjs http://127.0.0.1:18080",
     "e2e": "playwright test -c e2e",
     "e2e:docker": "bash scripts/e2e-docker.sh",
+    "lh": "node scripts/lighthouse.mjs",
     "test:deploy": "bash deploy/update.test.sh",
     "icons": "node scripts/make-icons.mjs",
     "prepare": "husky"
@@ -52,6 +53,7 @@
     "@testing-library/user-event": "^14.6.8",
     "@vitest/coverage-v8": "^5.0.5",
     "angular-eslint": "22.6.0",
+    "chrome-launcher": "^1.2.2",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "fast-check": "^4.10.2",

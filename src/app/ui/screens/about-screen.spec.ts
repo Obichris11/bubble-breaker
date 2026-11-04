@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/angular';
+import { STRINGS } from '../../strings';
 import { VERSION } from '../../version';
 import { AboutScreen } from './about-screen';
 
@@ -10,5 +11,13 @@ describe('AboutScreen', () => {
     expect(screen.getByText(`Version ${VERSION}`)).toBeInTheDocument();
     expect(screen.getByText(/Not affiliated with any original publisher\.$/)).toBeInTheDocument();
     expect(screen.getByText(/No accounts, no tracking\./)).toBeInTheDocument();
+  });
+
+  it('links to the source and license', async () => {
+    await render(AboutScreen);
+    const link = screen.getByRole('link', { name: STRINGS.about.source });
+    expect(link).toHaveAttribute('href', 'https://github.com/Obichris11/bubble-breaker');
+    expect(link).toHaveAttribute('target', '_blank');
+    expect(link.getAttribute('rel')).toContain('noopener');
   });
 });

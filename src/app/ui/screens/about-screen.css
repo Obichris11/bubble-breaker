@@ -28,3 +28,7 @@ p {
   color: var(--bb-text-muted);
   font-size: var(--bb-fs-s);
 }
+.source {
+  color: inherit;
+  text-decoration: underline;
+}
