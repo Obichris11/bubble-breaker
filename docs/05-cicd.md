@@ -59,8 +59,8 @@ All workflows follow these rules:
 |---|---|---|---|
 | `quality` | – | lint · `prettier --check` · typecheck · unit+component tests with coverage thresholds | coverage report |
 | `build` | – | `ng build` (production, budgets enforced) · `npm run check:pwa` | `dist/` |
-| `e2e` | build | Playwright (Chromium + WebKit, desktop + mobile) against static-served `dist/` built with test hooks · axe · visual snapshots | Playwright report + traces on failure |
-| `lighthouse` | build | Lighthouse CI, mobile, assertions from 04 | LH report |
+| `e2e` | build | In the pinned Playwright container: Playwright (Chromium + WebKit, desktop + mobile) against `dist/e2e` served by `scripts/serve.mjs` · axe · visual snapshots | Playwright report + traces on failure, 14 days |
+| `lighthouse` | build | In the same container: `scripts/lighthouse.mjs` on the production build, mobile, median of 3 runs, assertions from 04 | LH report, 14 days |
 | `docker` | – | actionlint + shellcheck · `npm run test:deploy` · `docker build` · `docker compose -f deploy/compose.yml up --wait` (the NAS settings) · `npm run check:container` (health, cache rules, SPA fallback and 404s, headers, no inline script) | – |
 
 `docker` builds the app inside the image (multi-stage), so it does not wait for `build`.
@@ -97,7 +97,7 @@ All workflows follow these rules:
 | github-actions | weekly | all in one group |
 | docker | weekly | one group `base-images` (digests of `node:24-alpine` and `nginx-unprivileged:stable-alpine-slim`) |
 
-Angular major upgrades are done manually with `ng update`, and Dependabot ignores `@angular/*` major versions.
+Angular major upgrades are done manually with `ng update`, and Dependabot ignores `@angular/*` major versions. It also ignores `@playwright/test`: that is bumped by hand together with the e2e image digest and the visual baselines.
 
 ## Secrets & tokens
 

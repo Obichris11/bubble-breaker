@@ -14,7 +14,18 @@ const layer = (forbidden, message) => ({
 });
 
 export default defineConfig(
-  { ignores: ['dist/', 'coverage/', '.angular/', 'docs/', 'node_modules/'] },
+  {
+    ignores: [
+      'dist/',
+      'coverage/',
+      '.angular/',
+      'docs/',
+      'node_modules/',
+      'playwright-report/',
+      'test-results/',
+      'lighthouse/',
+    ],
+  },
   {
     files: ['**/*.ts'],
     extends: [
@@ -47,6 +58,11 @@ export default defineConfig(
   {
     files: ['**/*.spec.ts', '**/testing/**/*.ts'],
     rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
+  },
+  {
+    // Playwright requires the default export.
+    files: ['e2e/playwright.config.ts'],
+    rules: { 'no-restricted-exports': 'off' },
   },
   {
     files: ['src/app/engine/**/*.ts'],

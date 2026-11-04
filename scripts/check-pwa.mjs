@@ -1,7 +1,7 @@
 // Checks a production build for what makes the app installable and offline-capable
 // (06-deployment "PWA deployment requirements"). CI runs it after `npm run build`:
 //   node scripts/check-pwa.mjs dist/bubble-breaker/browser
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const dist = process.argv[2] ?? 'dist/bubble-breaker/browser';
@@ -84,6 +84,13 @@ if (errors.length === 0) {
   for (const url of Object.keys(ngsw.hashTable)) {
     check(existsSync(join(dist, url)), `ngsw.json lists ${url}, which is not in the build`);
   }
+}
+
+for (const file of readdirSync(dist).filter((name) => name.endsWith('.js'))) {
+  check(
+    !/\.get\(["']seed["']\)/.test(read(file).toString()),
+    `test seed hook found in ${file}: production builds must not read ?seed=`,
+  );
 }
 
 if (errors.length > 0) {

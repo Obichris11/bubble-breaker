@@ -5,6 +5,7 @@ import { providePlatform } from './provide-platform';
 import { BrowserPwa, PwaPort } from './pwa';
 import { BrowserReducedMotion, ReducedMotionPort } from './reduced-motion';
 import { BrowserStorage, StoragePort } from './storage';
+import { TEST_SEED } from './test-seed';
 import { BrowserVisibility, VisibilityPort } from './visibility';
 
 describe('providePlatform', () => {
@@ -26,6 +27,13 @@ describe('providePlatform', () => {
     expect(pwa.updateAvailable()).toBe(false);
     expect(pwa.offlineReady()).toBe(false);
     expect(pwa.installAvailable()).toBe(false);
+  });
+
+  it('binds TEST_SEED from the URL when test hooks are on', () => {
+    const url = location.href;
+    history.replaceState(null, '', '/?seed=9');
+    expect(TestBed.inject(TEST_SEED)).toBe(9);
+    history.replaceState(null, '', url);
   });
 
   it('uses localStorage', () => {

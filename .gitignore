@@ -49,3 +49,7 @@ Thumbs.db
 # Obsidian
 .obsidian/
 .trash/
+.superpowers/
+playwright-report/
+test-results/
+lighthouse/

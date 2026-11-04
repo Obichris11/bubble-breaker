@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { allGroups, ballAt, groupAt, newGame, scoreFor, type Cell, type Game } from '../engine';
+import { TEST_SEED } from '../platform/test-seed';
 import { createFakePlatform, type FakePlatform } from '../platform/testing/fakes';
 import { GameStore } from './game.store';
 import { KEYS, type GameRecord } from './persistence';
@@ -111,6 +112,36 @@ describe('GameStore', () => {
       const store = start();
       expect(store.game().score).toBe(0);
       expect(store.paused()).toBe(false);
+    });
+  });
+
+  describe('test seed', () => {
+    const startSeeded = (saved?: GameRecord): GameStore => {
+      if (saved !== undefined) {
+        platform.storage.set(KEYS.game, saved);
+      }
+      TestBed.configureTestingModule({
+        providers: [...platform.providers, { provide: TEST_SEED, useValue: 42 }],
+      });
+      return TestBed.inject(GameStore);
+    };
+
+    it('deals the first game from TEST_SEED when nothing is saved', () => {
+      const store = startSeeded();
+      expect(store.game().seed).toBe(42);
+      expect(store.game().board).toEqual(newGame(42).board);
+    });
+
+    it('restores a saved game instead of the test seed', () => {
+      const store = startSeeded(recordFrom(['........b..', '........brr'], { seed: 7 }));
+      expect(store.game().seed).toBe(7);
+    });
+
+    it('New Game ignores the test seed', () => {
+      const store = startSeeded();
+      vi.spyOn(Math, 'random').mockReturnValue(0.5);
+      store.newGame();
+      expect(store.game().seed).toBe(2147483648);
     });
   });
 

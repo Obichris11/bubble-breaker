@@ -42,6 +42,8 @@ export const STRINGS = {
     tribute:
       'A tribute to the pocket-computer puzzle classic Jawbreaker by oopdreams. Not affiliated with any original publisher.',
     privacy: 'Works offline once loaded. No accounts, no tracking. Statistics stay on this device.',
+    source: 'Source code and MIT license on GitHub',
+    sourceUrl: 'https://github.com/Obichris11/bubble-breaker',
   },
   options: {
     title: 'Options',
