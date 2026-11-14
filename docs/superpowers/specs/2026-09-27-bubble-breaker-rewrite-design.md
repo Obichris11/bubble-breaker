@@ -123,7 +123,7 @@ Rebuild Bubble Breaker from scratch as:
 | Item | Fallback |
 |---|---|
 | Angular `security.autoCsp` works with `script-src 'self'` | Disable `inlineCritical` — Plan 07: autoCsp adds inline scripts the header blocks; `inlineCritical` is off |
-| `@lhci/cli` works with current Chrome/Lighthouse 13 | Run `lighthouse` CLI with same assertions |
+| `@lhci/cli` works with current Chrome/Lighthouse 13 | `lighthouse` CLI/Node API used (Plan 08) |
 | `nginx-unprivileged` writable paths under read-only root | Add tmpfs mounts — Plan 07: a tmpfs on `/tmp` is enough |
 | DSM docker binary path, `docker compose` v2 present | Use `docker-compose` binary — `update.sh` falls back by itself; confirm on the NAS (Plan 07 C1) |
 | Noto Sans subset + self-hosting within bundle budget | Single weight + system fallback |

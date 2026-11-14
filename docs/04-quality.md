@@ -26,9 +26,9 @@ Goal: every rule in [01-rules.md](01-rules.md) and every "must not get wrong" it
 | Coverage | `@vitest/coverage-v8` | Thresholds below |
 | Property tests | fast-check 4 | Engine invariants |
 | Component queries | `@testing-library/angular` 19 (peer `@angular/core >= 21`) | Test by role/label, not CSS classes |
-| E2E | Playwright 1.63 | Chromium + WebKit, desktop + mobile viewports |
+| E2E | `@playwright/test` 1.64.1, exact pin; CI runs in the matching `mcr.microsoft.com/playwright` image | Chromium + WebKit, desktop + mobile viewports |
 | A11y automated | `@axe-core/playwright` | Every screen, both Breaker Sets |
-| Performance | Lighthouse CI (`@lhci/cli`) | Last release 2025-06; if incompatible with current Chrome, run `lighthouse` CLI directly with same assertions |
+| Performance | `lighthouse` 13 Node API (`scripts/lighthouse.mjs`) | Not `@lhci/cli`: its last release (0.15.1, 2025-06) bundles Lighthouse 12.6 |
 | Git hooks | Husky 9 + lint-staged | Requires git ≥ 2.9; upgrade local git 2.15 anyway |
 | Commits | commitlint (Conventional Commits) | Needed for release-please (Phase 5) |
 
@@ -55,7 +55,7 @@ jsdom 30 lacks `HTMLDialogElement.showModal()`/`close()` and `inert`: `src/test-
 
 jsdom has no service worker, Cache Storage or `beforeinstallprompt` either: `BrowserPwa` is tested against fakes of `SwUpdate` and of the page, and the real flows (first cache, offline reload, update, install offer) are checked in a browser against a production build (Plan 06 browser check, Plan 08 e2e).
 
-Test seed hook: the app reads `?seed=<uint32>` **only** when `environment.testHooks` is true (dev + e2e builds). The production build ignores it.
+Test seed hook: the app reads `?seed=<uint32>` **only** when the build-time constant `BB_TEST_HOOKS` (angular.json `define`) is true: dev and e2e builds. It deals the first game when nothing playable is saved; a saved game wins and New Game is random again. esbuild drops the branch from the production build, and `check:pwa` fails if `?seed=` reading is found there.
 
 ## Gates
 
@@ -67,14 +67,14 @@ Test seed hook: the app reads `?seed=<uint32>` **only** when `environment.testHo
 | Coverage `state/` | ≥ 90 % lines, statements, functions & branches | CI (`npm run test:ci`) |
 | Coverage `ui/` | ≥ 80 % lines, statements, functions & branches | CI (`npm run test:ci`) |
 | Coverage overall | ≥ 80 % lines, statements, functions & branches | CI (`npm run test:ci`) |
-| E2E + axe | all pass, 0 serious/critical | CI |
+| E2E + axe | all pass, 0 serious/critical | CI `e2e` |
 | Bundle budget (angular.json) | initial ≤ 350 kB warn / 450 kB error (raw size, as Angular measures it; Lighthouse covers transfer speed); component styles ≤ 4 kB warn / 8 kB error | build |
 | PWA build check | `npm run check:pwa`: manifest fields, 192/512/maskable PNG icons, manifest link and theme colour in `index.html`, no ngsw data groups, prefetched app shell and fonts | CI (`build`) |
 | Container check | `npm run check:container` against the image started with `deploy/compose.yml`: `/health`, cache rules, SPA fallback and real 404s, security headers, no inline script in `index.html` | CI (`docker`) |
 | Workflows and NAS updater | actionlint + shellcheck (pinned `rhysd/actionlint` image); `npm run test:deploy` (updater against a stub docker) | CI (`docker`) |
 | Image vulnerabilities | Trivy: no fixable CRITICAL/HIGH, before any release tag moves | `release.yml` (`image`) |
-| Lighthouse (mobile, simulated throttling) | Performance ≥ 90, Accessibility = 100, Best Practices ≥ 95, SEO ≥ 90 | CI on PR |
-| Visual regression | ≤ 0.1 % pixel diff | CI |
+| Lighthouse (mobile, simulated throttling) | Performance ≥ 90, Accessibility = 100, Best Practices ≥ 95, SEO ≥ 90 | CI `lighthouse` |
+| Visual regression | ≤ 0.1 % pixel diff | CI `e2e` |
 
 Coverage mechanism: `npm run test:ci` runs `ng test --watch=false --coverage` (Angular `@angular/build:unit-test` builder, Vitest runner, v8 provider). The global and per-folder thresholds (`src/app/engine/**`, `src/app/state/**`, `src/app/ui/**`) and the coverage excludes live in `vitest-base.config.mts`, which the builder loads via `runnerConfig` and enforces itself: any unmet threshold prints `ERROR: Coverage for … does not meet "<glob>" threshold` and the command exits non-zero. The coverage scope (`src/app/**/*.ts`) is set with `coverageInclude` in `angular.json`, **not** in the Vitest config: only then does the builder add the globs for its bundled `spec-*.js`/`chunk-*.js` files, otherwise executed code is dropped before source-map remapping and everything reports 0 %. Because the include is explicit, untested files under `src/app/` are reported at 0 % and count against the thresholds. Verified with an untested probe file in `src/app/engine/` (0 % < 95 % → exit 1); no separate CI coverage step is needed.
 
@@ -87,7 +87,7 @@ Coverage mechanism: `npm run test:ci` runs `ng test --watch=false --coverage` (A
 - `pre-commit`: lint-staged → ESLint `--fix` + Prettier on staged files.
 - `commit-msg`: commitlint.
 - `pre-push`: `npm test` (unit + component).
-- E2E and Lighthouse run in CI; locally on demand (`npm run e2e`, `npm run lh`).
+- E2E and Lighthouse run in CI; locally on demand (`npm run e2e`, `npm run lh`). Visual baselines are rendered only in the CI image: `npm run e2e:docker -- --project=visual --update-snapshots`.
 
 ## Definition of Done (per PR)
 

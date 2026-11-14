@@ -6,3 +6,7 @@ package-lock.json
 src/styles/tokens.css
 CHANGELOG.md
 .release-please-manifest.json
+.superpowers/
+playwright-report/
+test-results/
+lighthouse/
