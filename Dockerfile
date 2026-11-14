@@ -13,7 +13,8 @@ RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:stable-alpine-slim@sha256:5d8bb9437d74a600ec5dbf90c035451c724dc33eac8d3a71078f6f8612c345f6 AS runtime
 USER root
-RUN rm -rf /usr/share/nginx/html/*
+# Pull fixed Alpine packages (zlib, musl) before the base image is rebuilt upstream.
+RUN apk upgrade --no-cache && rm -rf /usr/share/nginx/html/*
 USER 101
 COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/bubble-breaker/browser /usr/share/nginx/html
