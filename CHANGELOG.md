@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.1](https://github.com/Obichris11/bubble-breaker/compare/v2.1.0...v2.1.1) (2026-11-14)
+
+
+### Bug Fixes
+
+* **docker:** upgrade alpine packages in the runtime image so trivy passes ([#38](https://github.com/Obichris11/bubble-breaker/issues/38)) ([5d643fa](https://github.com/Obichris11/bubble-breaker/commit/5d643fadadbb29e29f841fd4b482bd60364df0f8))
+
 ## [2.1.0](https://github.com/Obichris11/bubble-breaker/compare/v2.0.2...v2.1.0) (2026-11-14)
 
 
