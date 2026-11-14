@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.0](https://github.com/Obichris11/bubble-breaker/compare/v2.0.2...v2.1.0) (2026-11-14)
+
+
+### Features
+
+* e2e, axe, visual and lighthouse gates, about and readme polish ([#26](https://github.com/Obichris11/bubble-breaker/issues/26)) ([78ba639](https://github.com/Obichris11/bubble-breaker/commit/78ba639753ebb033a2377aefdd00a905ff1782f0))
+
 ## [2.0.2](https://github.com/Obichris11/bubble-breaker/compare/v2.0.1...v2.0.2) (2026-10-30)
 
 
